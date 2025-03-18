@@ -227,10 +227,10 @@ function getPostsCount() {
 }
 
 /**
- * 获取文章缩略图
+ * 获取文章缩略图和所有图片
  * 
  * @param object|array $post 文章对象或数组
- * @return string 缩略图URL
+ * @return array 包含缩略图URL、所有图片数组(最多9张)和实际图片总数
  */
 function get_post_thumbnail($post) {
     // 将数组转换为对象
@@ -241,18 +241,25 @@ function get_post_thumbnail($post) {
     // 获取默认缩略图
     $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
     
+    // 初始化返回数组
+    $result = array(
+        'thumbnail' => $default_thumbnail,
+        'images' => array(),
+        'count' => 0,
+        'total_count' => 0  // 新增：记录实际总数
+    );
+    
     // 调试信息
     error_log('Post object: ' . print_r($post, true));
     
     if (!$post) {
         error_log('No post object provided');
-        return $default_thumbnail;
+        return $result;
     }
     
-    // 1. 尝试获取文章内容
+    // 1. 获取文章内容
     $content = '';
     
-    // 获取完整的文章内容
     if (isset($post->text) && !empty($post->text)) {
         $content = $post->text;
     } else if (isset($post->content) && !empty($post->content)) {
@@ -263,41 +270,80 @@ function get_post_thumbnail($post) {
     
     error_log('Article content length: ' . strlen($content));
     
+    $images = array();
+    
     if (!empty($content)) {
-        // 2. 尝试匹配第一张图片
-        // 匹配 HTML img 标签
-        if (preg_match('/<img[^>]*src=[\'"]([^\'"]+)[\'"][^>]*>/i', $content, $matches)) {
-            $img_url = $matches[1];
-            error_log('Found HTML image: ' . $img_url);
-            
-            // 处理相对路径
-            if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
-                $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
+        // 2. 匹配所有HTML图片
+        preg_match_all('/<img[^>]*src=[\\\'"]([^\\\'"]+)[\\\'"][^>]*>/i', $content, $html_matches);
+        if (!empty($html_matches[1])) {
+            foreach ($html_matches[1] as $img_url) {
+                // 处理相对路径
+                if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
+                    $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
+                }
+                $images[] = $img_url;
             }
-            return $img_url;
         }
         
-        // 匹配 Markdown 格式图片
-        if (preg_match('/!\[([^\]]*)\]\(([^\)]+)\)/i', $content, $matches)) {
-            $img_url = $matches[2];
-            error_log('Found Markdown image: ' . $img_url);
-            
-            // 处理相对路径
-            if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
-                $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
+        // 3. 匹配所有Markdown格式图片
+        preg_match_all('/!\[([^\]]*)\]\(([^\)]+)\)/i', $content, $md_matches);
+        if (!empty($md_matches[2])) {
+            foreach ($md_matches[2] as $img_url) {
+                // 处理相对路径
+                if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
+                    $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
+                }
+                $images[] = $img_url;
             }
-            return $img_url;
         }
         
-        // 尝试匹配任何图片URL
-        if (preg_match('/(https?:\/\/[^\s<>"\']*?\.(?:jpg|jpeg|png|gif|webp))(\?[^\s<>"\']*)?/i', $content, $matches)) {
-            error_log('Found URL image: ' . $matches[1]);
-            return $matches[1];
+        // 4. 匹配所有直接的图片URL
+        preg_match_all('/(https?:\/\/[^\s<>\"\']*?\.(?:jpg|jpeg|png|gif|webp))(\?[^\s<>\"\']*)?/i', $content, $url_matches);
+        if (!empty($url_matches[1])) {
+            $images = array_merge($images, $url_matches[1]);
+        }
+        
+        // 去重
+        $images = array_unique($images);
+        $images = array_values($images); // 重置数组索引
+        
+        // 保存实际的总图片数
+        $total_count = count($images);
+        
+        // 如果图片数量超过9张，随机选择9张
+        if (count($images) > 9) {
+            // 保存第一张图片作为缩略图
+            $thumbnail = $images[0];
+            
+            // 打乱数组顺序
+            shuffle($images);
+            
+            // 只保留9张图片
+            $images = array_slice($images, 0, 9);
+            
+            // 确保缩略图在选中的图片中
+            if (!in_array($thumbnail, $images)) {
+                // 替换最后一张图片为缩略图
+                $images[8] = $thumbnail;
+            }
+        }
+        
+        // 更新结果数组
+        $result['images'] = $images;
+        $result['count'] = count($images);
+        $result['total_count'] = $total_count;  // 保存实际总数
+        
+        // 设置缩略图（使用第一张图片）
+        if (!empty($images)) {
+            $result['thumbnail'] = $images[0];
         }
     }
     
-    error_log('No image found, using default: ' . $default_thumbnail);
-    return $default_thumbnail;
+    error_log('Selected images count: ' . $result['count']);
+    error_log('Total images found: ' . $result['total_count']);
+    error_log('Thumbnail URL: ' . $result['thumbnail']);
+    
+    return $result;
 }
 
 /**

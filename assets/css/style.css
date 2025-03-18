@@ -762,3 +762,5 @@ img{border:0;max-width:100%;height:auto;}
 .dark #c_sousuo .search_box .ss_a button {
   color: #eee;
 }
+.thumbnail-container{width:75px;height:50px;margin-right:15px;flex-shrink:0;border-radius:4px;overflow:hidden;}
+.thumbnail{width:100%;height:100%;object-fit:cover;}

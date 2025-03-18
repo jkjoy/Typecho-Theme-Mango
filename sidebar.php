@@ -2,7 +2,6 @@
 <div class="col-lg-4">
     <div class="sidebar_sticky">
     <div class="author_show_box">
-
 <!-- 作者信息 -->
 <?php
 // 获取数据库实例
@@ -31,7 +30,6 @@ if ($user->hasLogin()) {
             $targetUser->uid = $adminUser['uid'];
             $targetUser->mail = $adminUser['mail'];
             $targetUser->screenName = $adminUser['screenName'];
-            $targetUser->bio = $adminUser['bio'];
             $userId = $adminUser['uid'];
         } else {
             // 如果找不到管理员，返回空
@@ -44,7 +42,6 @@ if ($user->hasLogin()) {
         return;
     }
 }
-
 // 查询用户的文章数量
 $postCount = $db->fetchRow($db->select('COUNT(*) AS count')
     ->from('table.contents')
@@ -74,7 +71,7 @@ $gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($emai
          loading='lazy' 
          decoding='async'/>
     <h3><?php echo $targetUser->screenName; ?></h3>
-    <p><?php echo $targetUser->bio ?: '这个人很懒,什么也没有留下!'; ?></p>
+    <p></p>
 </div>
 <div class="author_show_info">
     <span><i class="bi bi-book"></i><b>文章</b><?php echo $postCount; ?></span>
@@ -86,15 +83,18 @@ $gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($emai
     // 获取指定用户的最近文章
     $recentPosts = Typecho_Widget::widget('Widget_Contents_Post_Recent', 'pageSize=3&uid=' . $userId);
     while ($recentPosts->next()):
-        $cover = get_post_thumbnail($recentPosts);
+        $result = get_post_thumbnail($recentPosts);
+        $images = $result['images'];
         $commentsNum = $recentPosts->commentsNum;
     ?>
         <li>
-            <img width="400" height="280" 
-                 src="<?php echo $cover; ?>" 
-                 class="attachment-400x280x1 size-400x280x1" 
-                 alt="<?php echo $recentPosts->title; ?>" 
-                 decoding="async" loading="lazy" />
+            <div class="thumbnail-container">
+                <img width="400" height="280" 
+                     src="<?php echo $images[0]; ?>" 
+                     class="thumbnail" 
+                     alt="<?php echo $recentPosts->title; ?>" 
+                     decoding="async" loading="lazy" />
+            </div>
             <div class="author_title">
                 <a href="<?php echo $recentPosts->permalink; ?>" 
                    class="stretched-link"><?php echo $recentPosts->title; ?></a>
@@ -121,27 +121,41 @@ try {
     <aside id="hot_posts-2" class="widget widget_hot_posts">
         <h3 class="widget-title">热门文章</h3>
         <ul class="widget_hot_post">
-            <?php 
-            foreach ($result as $post): 
-                // 使用 Widget_Abstract_Contents 处理文章数据
-                $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
-                $cover = get_post_thumbnail($temp_post);
-            ?>
-                <li class="widget_hot_li">
-                    <img width="400" height="280" src="<?php echo $cover; ?>" 
-                         class="attachment-400x280x1 size-400x280x1 wp-post-image" 
-                         alt="<?php echo htmlspecialchars($temp_post['title']); ?>" 
-                         decoding="async" loading="lazy" />  
-                    <div class="hot_post_info">
-                        <h4>
-                            <a class="stretched-link" href="<?php echo $temp_post['permalink']; ?>">
-                                <?php echo htmlspecialchars($temp_post['title']); ?>
-                            </a>
-                        </h4>
-                        <p><?php echo intval($temp_post['commentsNum']); ?> 条留言</p>
-                    </div>
-                </li> 
-            <?php endforeach; ?>
+<?php 
+foreach ($result as $post): 
+    try {
+        // 使用 Widget_Abstract_Contents 处理文章数据
+        $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
+        $post_images = get_post_thumbnail($post);
+        // 获取缩略图URL，如果没有图片则使用默认图片
+        $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
+?>
+        <li class="widget_hot_li">
+            <img width="400" 
+                 height="280" 
+                 src="<?php echo htmlspecialchars($thumbnail); ?>" 
+                 class="thumbnail" 
+                 alt="<?php echo htmlspecialchars($temp_post['title']); ?>" 
+                 decoding="async" 
+                 loading="lazy">
+            <div class="hot_post_info">
+                <h4>
+                    <a class="stretched-link" 
+                       href="<?php echo htmlspecialchars($temp_post['permalink']); ?>">
+                        <?php echo htmlspecialchars($temp_post['title']); ?>
+                    </a>
+                </h4>
+                <p><?php echo intval($temp_post['commentsNum']); ?> 条留言</p>
+            </div>
+        </li> 
+<?php 
+    } catch (Exception $e) {
+        // 错误日志记录
+        error_log('Error processing post: ' . $e->getMessage());
+        continue; // 跳过有错误的文章，继续处理下一篇
+    }
+endforeach; 
+?>
         </ul>
     </aside>
 <?php 
@@ -152,12 +166,11 @@ try {
 ?>
 
 <!-- 最近回复 -->
-
-     <?php if (!empty($this->options->sidebarBlock) && in_array('ShowRecentComments', $this->options->sidebarBlock)): ?>
-        <aside id="comments-3" class="widget widget_comments">
-            <h3 class="widget-title"><?php _e('最近回复'); ?></h3>
-            <ul class="widget_comment_ul">
-            <?php $comments = \Widget\Comments\Recent::alloc(); ?>
+<?php if (!empty($this->options->sidebarBlock) && in_array('ShowRecentComments', $this->options->sidebarBlock)): ?>
+    <aside id="comments-3" class="widget widget_comments">
+        <h3 class="widget-title"><?php _e('最近回复'); ?></h3>
+        <ul class="widget_comment_ul">
+        <?php $comments = \Widget\Comments\Recent::alloc(); ?>
             <?php while ($comments->next()): ?>
                 <li>
                 <?php echo $comments->gravatar('40', ''); ?>
@@ -176,7 +189,7 @@ try {
  
  <!-- 热门标签 -->
       
-    <?php $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20'); if ($tags->have()):?>
+<?php $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20'); if ($tags->have()):?>
     <aside id="hot_tags-2" class="widget widget_hot_tags">
         <h3 class="widget-title">热门标签</h3>
         <div class="tagcloud">
