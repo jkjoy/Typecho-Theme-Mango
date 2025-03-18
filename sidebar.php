@@ -84,13 +84,13 @@ $gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($emai
     $recentPosts = Typecho_Widget::widget('Widget_Contents_Post_Recent', 'pageSize=3&uid=' . $userId);
     while ($recentPosts->next()):
         $result = get_post_thumbnail($recentPosts);
-        $images = $result['images'];
+        $thumbnail = !empty($result['images']) ? $result['images'][0] : $result['thumbnail'];
         $commentsNum = $recentPosts->commentsNum;
     ?>
         <li>
             <div class="thumbnail-container">
                 <img width="400" height="280" 
-                     src="<?php echo $images[0]; ?>" 
+                     src="<?php echo htmlspecialchars($thumbnail); ?>" 
                      class="thumbnail" 
                      alt="<?php echo $recentPosts->title; ?>" 
                      decoding="async" loading="lazy" />
