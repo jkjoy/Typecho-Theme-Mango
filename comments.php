@@ -165,6 +165,12 @@ function threadedComments($comments, $options) {
                         <p class="comment-form-url">
                             <input type="url" name="url" id="url" class="text" placeholder="http(s)://<?php if ($this->options->commentsRequireURL): ?> *<?php endif; ?>" value="<?php echo $previousUrl; ?>"<?php if ($this->options->commentsRequireURL): ?> required<?php endif; ?> />
                         </p>
+                        <p class="comment-form-remember">
+                            <label>
+                            <input type="checkbox" name="remember" id="remember" <?php if($this->remember('author',true)): ?> checked="checked"<?php endif; ?> />
+                             记住我的个人信息 (保存一个月)
+                            </label>
+                        </p>
                         <?php endif; ?>
                         
                         <p class="comment-form-comment">
@@ -173,7 +179,7 @@ function threadedComments($comments, $options) {
                                     placeholder="雁过留声,人过留名" 
                                     required><?php $this->remember('text'); ?></textarea>
                         </p>
-                        
+
                         <p class="form-submit">
                             <button type="submit" class="submit" id="misubmit">提交评论</button>
                         </p>
@@ -185,17 +191,34 @@ function threadedComments($comments, $options) {
 </div> 
 <script>
 // 评论表单提交处理
-document.getElementById('comment-form').addEventListener('submit', function() {
+document.getElementById('comment-form').addEventListener('submit', function(event) {
     var author = document.getElementById('author');
     var mail = document.getElementById('mail');
     var url = document.getElementById('url');
     var textarea = document.getElementById('textarea');
+    var remember = document.getElementById('remember');
     
-    // 保存评论者信息
-    if (author && mail && url) {
-        setCookie('__typecho_remember_author', author.value, 30);
-        setCookie('__typecho_remember_mail', mail.value, 30);
-        setCookie('__typecho_remember_url', url.value, 30);
+    // 检查评论内容是否为空
+    if (textarea && textarea.value.trim() === '') {
+        alert('必须填写评论内容');
+        event.preventDefault();
+        return false;
+    }
+
+    // 只有在选中"记住我"时才保存评论者信息
+    if (remember && remember.checked) {
+        if (author && mail && url) {
+            setCookie('__typecho_remember_author', author.value, 30);
+            setCookie('__typecho_remember_mail', mail.value, 30);
+            setCookie('__typecho_remember_url', url.value, 30);
+            setCookie('__typecho_remember_checkbox', 'true', 30);
+        }
+    } else {
+        // 如果未选中，则清除已存储的cookie
+        deleteCookie('__typecho_remember_author');
+        deleteCookie('__typecho_remember_mail');
+        deleteCookie('__typecho_remember_url');
+        deleteCookie('__typecho_remember_checkbox');
     }
     
     // 禁用提交按钮防止重复提交
@@ -203,11 +226,6 @@ document.getElementById('comment-form').addEventListener('submit', function() {
     if (submitBtn) {
         submitBtn.disabled = true;
         submitBtn.innerHTML = '提交中...';
-    }
-    
-    // 清空评论框
-    if (textarea) {
-        textarea.value = '';
     }
 });
 
@@ -222,77 +240,42 @@ function setCookie(name, value, days) {
     document.cookie = name + '=' + encodeURIComponent(value) + expires + '; path=/';
 }
 
-// 评论回复功能
-window.TypechoComment = {
-    dom: function (id) {
-        return document.getElementById(id);
-    },
-    
-    create: function (tag, attr) {
-        var el = document.createElement(tag);
-        for (var key in attr) {
-            el.setAttribute(key, attr[key]);
+// Cookie删除函数
+function deleteCookie(name) {
+    setCookie(name, '', -1);
+}
+
+// Cookie获取函数
+function getCookie(name) {
+    var nameEQ = name + '=';
+    var ca = document.cookie.split(';');
+    for(var i = 0; i < ca.length; i++) {
+        var c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1, c.length);
         }
-        return el;
-    },
-
-    reply: function (cid, coid) {
-        var comment = this.dom(cid),
-            parent = comment.parentNode,
-            response = this.dom('<?php echo $this->respondId(); ?>'),
-            input = this.dom('comment-parent'),
-            form = 'form' == response.tagName ? response : response.getElementsByTagName('form')[0],
-            textarea = response.getElementsByTagName('textarea')[0];
-
-        if (null == input) {
-            input = this.create('input', {
-                'type': 'hidden',
-                'name': 'parent',
-                'id': 'comment-parent'
-            });
-            form.appendChild(input);
+        if (c.indexOf(nameEQ) == 0) {
+            return decodeURIComponent(c.substring(nameEQ.length, c.length));
         }
-        
-        input.setAttribute('value', coid);
-
-        if (null == this.dom('comment-form-place-holder')) {
-            var holder = this.create('div', {
-                'id': 'comment-form-place-holder'
-            });
-            response.parentNode.insertBefore(holder, response);
-        }
-
-        comment.appendChild(response);
-        this.dom('cancel-comment-reply-link').style.display = '';
-
-        if (null != textarea && 'text' == textarea.name) {
-            textarea.focus();
-        }
-
-        return false;
-    },
-
-    cancelReply: function () {
-        var response = this.dom('<?php echo $this->respondId(); ?>'),
-            holder = this.dom('comment-form-place-holder'),
-            input = this.dom('comment-parent');
-
-        if (null != input) {
-            input.parentNode.removeChild(input);
-        }
-
-        if (null == holder) {
-            return true;
-        }
-
-        this.dom('cancel-comment-reply-link').style.display = 'none';
-        holder.parentNode.insertBefore(response, holder);
-        return false;
     }
-};
+    return null;
+}
 
-// 页面加载完成后的初始化
+// 页面加载时自动填充已保存的信息
 document.addEventListener('DOMContentLoaded', function() {
+    var author = document.getElementById('author');
+    var mail = document.getElementById('mail');
+    var url = document.getElementById('url');
+    var remember = document.getElementById('remember');
+    
+    // 如果之前选择了记住信息，则自动填充表单
+    if (getCookie('__typecho_remember_checkbox') === 'true') {
+        if (remember) remember.checked = true;
+        if (author) author.value = getCookie('__typecho_remember_author') || '';
+        if (mail) mail.value = getCookie('__typecho_remember_mail') || '';
+        if (url) url.value = getCookie('__typecho_remember_url') || '';
+    }
+    
     // 为评论添加过渡效果
     var comments = document.querySelectorAll('.comment-body');
     comments.forEach(function(comment) {
