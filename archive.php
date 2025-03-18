@@ -86,25 +86,9 @@ if (!empty($images)):
 <?php
 $nextPage = $this->_currentPage + 1;
 $totalPages = ceil($this->getTotal() / $this->parameter->pageSize);
-
-// 检查是否还有下一页
 if ($this->_currentPage < $totalPages): ?>
     <div class="post-read-more">
-        <?php if ($this->is('index')): ?>
-            <a href="<?php $this->options->siteUrl(); ?>page/<?php echo $nextPage; ?>">加载更多</a>
-        <?php else: ?>
-            <?php 
-                // 获取当前请求的完整路径
-                $requestUri = $this->request->getRequestUri();
-                // 移除页码相关参数
-                $baseUrl = preg_replace('/\/page\/\d+/', '', $requestUri);
-                $baseUrl = preg_replace('/\/\d+$/', '', $baseUrl);
-                // 确保路径末尾有斜杠
-                $baseUrl = rtrim($baseUrl, '/') . '/';
-                // 构建完整的下一页URL，直接添加页码
-                echo '<a href="' . $baseUrl . $nextPage . '">加载更多</a>';
-            ?>
-        <?php endif; ?>
+    <?php $this->pageLink('加载更多', 'next'); ?>
     </div>
 <?php endif; ?>    
 </div>
