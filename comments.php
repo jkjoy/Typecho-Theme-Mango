@@ -1,25 +1,6 @@
 <?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
 <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/comments.css'); ?>">
 <?php 
-// 评论者等级判断函数
-function commentApprove($comment, $email) {
-    // 博主
-    if ($comment->authorId == 1) {
-        return array(
-            'bgColor' => '#FF6C6C',
-            'userDesc' => '博主',
-            'userLevel' => '博主'
-        );
-    }
-    
-    // 访客
-    return array(
-        'bgColor' => '#888888',
-        'userDesc' => '访客',
-        'userLevel' => '访客'
-    );
-}
-
 // 获取父评论链接
 function getPermalinkFromCoid($coid) {
     $db = Typecho_Db::get();
@@ -28,7 +9,6 @@ function getPermalinkFromCoid($coid) {
     return '<a href="#comment-' . $coid . '">@' . $row['author'] . '</a> ';
 }
 ?>
-
 <div class="post_comment" id="post_comment_anchor">
     <div id="comments" class="comments-area">
         <div class="layoutSingleColumn">
@@ -37,32 +17,13 @@ function getPermalinkFromCoid($coid) {
             $language = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
             if($this->allow('comment') && stripos($language, 'zh') > -1): 
             ?>
-                <h3 class="comments-title">
-                    <i class="bi bi-filter me-2"></i>评论<small>(<?php $this->commentsNum(_t('0'), _t('1'), _t('%d')); ?>)</small>
-                </h3>
-                
-                <?php if ($comments->have()): ?>
-                    <?php 
-// 重写评论显示函数
-function threadedComments($comments, $options) {
-    $commentClass = '';
-    if ($comments->authorId) {
-        if ($comments->authorId == $comments->ownerId) {
-            $commentClass .= ' comment-by-author';
-        } else {
-            $commentClass .= ' comment-by-user';
-        }
-    }
-    $commentApprove = commentApprove($comments, $comments->mail);
-?>
-    <li id="<?php $comments->theId(); ?>" class="comment even thread-even depth-1 <?php 
-        if ($comments->levels == 0) {
-            echo 'comment parent';
-        } else {
-            echo 'comment child';
-        }
-        echo $commentClass; 
-    ?>">
+            <h3 class="comments-title">
+                <i class="bi bi-filter me-2"></i>评论<small>(<?php $this->commentsNum(_t('0'), _t('1'), _t('%d')); ?>)</small>
+            </h3>
+        <?php $commentApprove = commentApprove($comments, $comments->mail); ?>                
+        <?php if ($comments->have()): ?>
+        <?php function threadedComments($comments, $options) {$commentClass = '';if ($comments->authorId) {if ($comments->authorId == $comments->ownerId) {$commentClass .= ' comment-by-author';} else {$commentClass .= ' comment-by-user';}}$commentApprove = commentApprove($comments, $comments->mail);?>
+            <li id="<?php $comments->theId(); ?>" class="comment even thread-even depth-1 <?php if ($comments->levels == 0) {echo 'comment parent';} else {echo 'comment child';}echo $commentClass; ?>">
         <article class="comment-body" id="div-<?php $comments->theId(); ?>">
             <footer class="comment-meta">
                 <div class="comment-author vcard">
@@ -75,6 +36,10 @@ function threadedComments($comments, $options) {
                     <?php else: ?>
                         <?php echo $comments->author; ?>  
                     <?php endif; ?>
+                    
+                    <span style="color: <?php echo $commentApprove['bgColor']; ?>;">
+                        <?php echo $commentApprove['userLevel']; ?>
+                    </span>
                     </b><span class="says">说道：</span>
                 </div>
                 <div class="comment-metadata">
@@ -117,14 +82,8 @@ function threadedComments($comments, $options) {
     </ol><!-- .comment-list -->
 <?php endif; ?>
                 <!-- 评论分页 -->
-                <nav class="navigation comments-pagination" aria-label="评论分页">
-               
-                    <?php 
-                    $comments->pageNav(
-                        ' ',
-                        ' ',
-                        1,
-                    '...',
+        <nav class="navigation comments-pagination" aria-label="评论分页">
+            <?php $comments->pageNav('','',1,'...',
                     array(
                         'wrapTag' => 'div',
                         'wrapClass' => 'nav-links',
@@ -134,12 +93,9 @@ function threadedComments($comments, $options) {
                         'currentClass' => 'page-numbers current',
                         'prevClass' => 'hidden',
                         'nextClass' => 'hidden'
-                    )
-                );
-                ?>
-              
+                    ));?>           
                 </nav>
-                <?php endif; ?>
+            <?php endif; ?>
 
                 <!-- 评论表单 -->
                 <div id="<?php $this->respondId(); ?>" class="comment-respond">
@@ -165,12 +121,6 @@ function threadedComments($comments, $options) {
                         <p class="comment-form-url">
                             <input type="url" name="url" id="url" class="text" placeholder="http(s)://<?php if ($this->options->commentsRequireURL): ?> *<?php endif; ?>" value="<?php echo $previousUrl; ?>"<?php if ($this->options->commentsRequireURL): ?> required<?php endif; ?> />
                         </p>
-                        <p class="comment-form-remember">
-                            <label>
-                            <input type="checkbox" name="remember" id="remember" <?php if($this->remember('author',true)): ?> checked="checked"<?php endif; ?> />
-                             记住我的个人信息 (保存一个月)
-                            </label>
-                        </p>
                         <?php endif; ?>
                         
                         <p class="comment-form-comment">
@@ -191,43 +141,36 @@ function threadedComments($comments, $options) {
 </div> 
 <script>
 // 评论表单提交处理
-document.getElementById('comment-form').addEventListener('submit', function(event) {
-    var author = document.getElementById('author');
-    var mail = document.getElementById('mail');
-    var url = document.getElementById('url');
-    var textarea = document.getElementById('textarea');
-    var remember = document.getElementById('remember');
-    
-    // 检查评论内容是否为空
-    if (textarea && textarea.value.trim() === '') {
-        alert('必须填写评论内容');
-        event.preventDefault();
-        return false;
-    }
+var commentForm = document.getElementById('comment-form');
+if (commentForm) {
+    commentForm.addEventListener('submit', function(event) {
+        var author = document.getElementById('author');
+        var mail = document.getElementById('mail');
+        var url = document.getElementById('url');
+        var textarea = document.getElementById('textarea');
+        
+        // 检查评论内容是否为空
+        if (textarea && textarea.value.trim() === '') {
+            alert('必须填写评论内容');
+            event.preventDefault();
+            return false;
+        }
 
-    // 只有在选中"记住我"时才保存评论者信息
-    if (remember && remember.checked) {
+        // 默认保存评论者信息
         if (author && mail && url) {
             setCookie('__typecho_remember_author', author.value, 30);
             setCookie('__typecho_remember_mail', mail.value, 30);
             setCookie('__typecho_remember_url', url.value, 30);
-            setCookie('__typecho_remember_checkbox', 'true', 30);
         }
-    } else {
-        // 如果未选中，则清除已存储的cookie
-        deleteCookie('__typecho_remember_author');
-        deleteCookie('__typecho_remember_mail');
-        deleteCookie('__typecho_remember_url');
-        deleteCookie('__typecho_remember_checkbox');
-    }
-    
-    // 禁用提交按钮防止重复提交
-    var submitBtn = document.getElementById('misubmit');
-    if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '提交中...';
-    }
-});
+        
+        // 禁用提交按钮防止重复提交
+        var submitBtn = document.getElementById('misubmit');
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '提交中...';
+        }
+    });
+}
 
 // Cookie设置函数
 function setCookie(name, value, days) {
@@ -266,15 +209,11 @@ document.addEventListener('DOMContentLoaded', function() {
     var author = document.getElementById('author');
     var mail = document.getElementById('mail');
     var url = document.getElementById('url');
-    var remember = document.getElementById('remember');
     
-    // 如果之前选择了记住信息，则自动填充表单
-    if (getCookie('__typecho_remember_checkbox') === 'true') {
-        if (remember) remember.checked = true;
-        if (author) author.value = getCookie('__typecho_remember_author') || '';
-        if (mail) mail.value = getCookie('__typecho_remember_mail') || '';
-        if (url) url.value = getCookie('__typecho_remember_url') || '';
-    }
+    // 自动填充表单
+    if (author) author.value = getCookie('__typecho_remember_author') || '';
+    if (mail) mail.value = getCookie('__typecho_remember_mail') || '';
+    if (url) url.value = getCookie('__typecho_remember_url') || '';
     
     // 为评论添加过渡效果
     var comments = document.querySelectorAll('.comment-body');

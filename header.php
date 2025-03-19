@@ -20,10 +20,6 @@
     <script type="text/javascript" src="<?php $this->options->themeUrl('assets/js/jquery.min.js'); ?>" id="jquery-min-js"></script>
     <!-- 通过自有函数输出HTML头部信息 -->
     <?php $this->header(); ?>
-    <link rel="stylesheet" href="https://cdn.imsun.org/lxgw-wenkai-screen-webfont/style.css" /> 
-<style>
-    * {font-family:"LXGW WenKai Screen",sans-serif !important;} img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }
-</style>
 <script>
   const isDark= localStorage.getItem("isDarkMode");
   if(isDark==="1"){
@@ -31,8 +27,7 @@
   }else{
     document.documentElement.classList.remove('dark');
   }
-</script>     
-<style>img:is([sizes="auto" i], [sizes^="auto," i]) { contain-intrinsic-size: 3000px 1500px }</style> 
+</script>
 </head>
 <body class="home blog">
 <header class="header sticky-top">

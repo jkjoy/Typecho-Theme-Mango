@@ -1,11 +1,13 @@
 <?php
 /**
  * Mango for Typecho
- * 从Wordpress移植到Typecho的主题
+ * 双栏主题
+ * 原作者 huitheme
+ * 老孙移植
  * @package  Mango 
  * @author 老孙
- * @version 1.0
- * @link http://imsun.org
+ * @version 1.0.1
+ * @link http://www.imsun.org
  */
 
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
@@ -38,17 +40,7 @@ $this->need('header.php');
                     <?php if($this->fields->summary){echo $this->fields->summary;} else {$this->excerpt(180);}?>      
                 </p>
         </div>
-<?php
-// 获取文章内容
-$content = $this->content;
-$result = get_post_thumbnail($this);
-$images = $result['images'];
-if (!empty($images)):
-    $imageCount = count($images);
-    if($imageCount > 9) {
-        $imageCount = 9;
-    }
-?>
+    <?php $content = $this->content; $result = get_post_thumbnail($this); $images = $result['images'];if (!empty($images)): $imageCount = count($images);if($imageCount > 9) { $imageCount = 9;}?>
     <div class="post_images post_img_<?php echo $imageCount; ?>">
         <?php foreach ($images as $image): ?>
             <a data-fancybox="post-<?php echo $imageCount; ?>" href="<?php echo htmlspecialchars($image); ?>">
@@ -56,7 +48,7 @@ if (!empty($images)):
             </a>
         <?php endforeach; ?>
     </div>
-<?php endif; ?>
+    <?php endif; ?>
         <div class="post_loop_tag">
             <?php if ($this->tags): ?>
             <?php foreach ($this->tags as $tag): ?>

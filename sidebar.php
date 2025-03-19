@@ -106,65 +106,68 @@ $gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($emai
 <?php endif; ?>
  
 <!-- 热门文章 -->
-<?php
-$db = Typecho_Db::get();
-try {
-    $result = $db->fetchAll($db->select()
-        ->from('table.contents')
-        ->where('type = ? AND status = ?', 'post', 'publish')
-        ->order('commentsNum', Typecho_Db::SORT_DESC)
-        ->limit(5)
-    );
-    
-    if (!empty($result)):
-?>
-    <aside id="hot_posts-2" class="widget widget_hot_posts">
-        <h3 class="widget-title">热门文章</h3>
-        <ul class="widget_hot_post">
-<?php 
-foreach ($result as $post): 
+<?php if (!empty($this->options->sidebarBlock) && in_array('ShowHotPosts', $this->options->sidebarBlock)): ?>
+    <?php
+    $db = Typecho_Db::get();
     try {
-        // 使用 Widget_Abstract_Contents 处理文章数据
-        $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
-        $post_images = get_post_thumbnail($post);
-        // 获取缩略图URL，如果没有图片则使用默认图片
-        $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
-?>
-        <li class="widget_hot_li">
-            <img width="400" 
-                 height="280" 
-                 src="<?php echo htmlspecialchars($thumbnail); ?>" 
-                 class="thumbnail" 
-                 alt="<?php echo htmlspecialchars($temp_post['title']); ?>" 
-                 decoding="async" 
-                 loading="lazy">
-            <div class="hot_post_info">
-                <h4>
-                    <a class="stretched-link" 
-                       href="<?php echo htmlspecialchars($temp_post['permalink']); ?>">
-                        <?php echo htmlspecialchars($temp_post['title']); ?>
-                    </a>
-                </h4>
-                <p><?php echo intval($temp_post['commentsNum']); ?> 条留言</p>
-            </div>
-        </li> 
-<?php 
-    } catch (Exception $e) {
-        // 错误日志记录
-        error_log('Error processing post: ' . $e->getMessage());
-        continue; // 跳过有错误的文章，继续处理下一篇
-    }
-endforeach; 
-?>
-        </ul>
-    </aside>
-<?php 
-    endif;
-} catch (Exception $e) {
-    error_log('查询热门文章失败: ' . $e->getMessage());
-}
-?>
+        $result = $db->fetchAll($db->select()
+            ->from('table.contents')
+            ->where('type = ? AND status = ?', 'post', 'publish')
+            ->order('commentsNum', Typecho_Db::SORT_DESC)
+            ->limit(5)
+        );
 
+        if (!empty($result)):
+    ?>
+            <aside id="hot_posts-2" class="widget widget_hot_posts">
+                <h3 class="widget-title">热门文章</h3>
+                <ul class="widget_hot_post">
+                    <?php 
+                    foreach ($result as $post): 
+                        try {
+                            // 使用 Widget_Abstract_Contents 处理文章数据
+                            $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
+                            $post_images = get_post_thumbnail($post);
+                            // 获取缩略图URL，如果没有图片则使用默认图片
+                            $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
+                    ?>
+                            <li class="widget_hot_li">
+                                <img width="400" 
+                                     height="280" 
+                                     src="<?php echo htmlspecialchars($thumbnail); ?>" 
+                                     class="thumbnail" 
+                                     alt="<?php echo htmlspecialchars($temp_post['title']); ?>" 
+                                     decoding="async" 
+                                     loading="lazy">
+                                <div class="hot_post_info">
+                                    <h4>
+                                        <a class="stretched-link" 
+                                           href="<?php echo htmlspecialchars($temp_post['permalink']); ?>">
+                                            <?php echo htmlspecialchars($temp_post['title']); ?>
+                                        </a>
+                                    </h4>
+                                    <p><?php echo intval($temp_post['commentsNum']); ?> 条留言</p>
+                                </div>
+                            </li> 
+                    <?php 
+                        } catch (Exception $e) {
+                            // 捕获并处理异常
+                            echo "处理文章时出错: " . $e->getMessage();
+                        }
+                    endforeach; 
+                    ?>
+                </ul>
+            </aside>
+        <?php else: ?>
+            <p>无热门文章</p>
+        <?php endif; ?>
+    <?php 
+    } catch (Exception $e) {
+        // 捕获并处理异常
+        echo "获取热门文章时出错: " . $e->getMessage();
+    }
+    ?>
+<?php endif; ?>
 <!-- 最近回复 -->
 <?php if (!empty($this->options->sidebarBlock) && in_array('ShowRecentComments', $this->options->sidebarBlock)): ?>
     <aside id="comments-3" class="widget widget_comments">
@@ -185,21 +188,30 @@ endforeach;
             </li>
             </ul>
         </aside>
-        <?php endif; ?> 
+<?php endif; ?> 
  
- <!-- 热门标签 -->
-      
-<?php $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20'); if ($tags->have()):?>
-    <aside id="hot_tags-2" class="widget widget_hot_tags">
-        <h3 class="widget-title">热门标签</h3>
-        <div class="tagcloud">
-            <?php while ($tags->next()): ?>
-                    <a href="<?php $tags->permalink(); ?>" title="<?php $tags->name(); ?> (<?php $tags->count(); ?> 篇文章)" class="tag-item">
+<!-- 热门标签 -->
+<?php if (!empty($this->options->sidebarBlock) && in_array('ShowTags', $this->options->sidebarBlock)): ?>
+    <?php
+    // 获取热门标签
+    $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20');
+    if ($tags->have()):
+    ?>
+        <aside id="hot_tags-2" class="widget widget_hot_tags">
+            <h3 class="widget-title">热门标签</h3>
+            <div class="tagcloud">
+                <?php while ($tags->next()): ?>
+                    <a href="<?php $tags->permalink(); ?>" 
+                       title="<?php $tags->name(); ?> (<?php $tags->count(); ?> 篇文章)" 
+                       class="tag-item">
                         <?php $tags->name(); ?>
                     </a>
-            <?php endwhile; ?>
-        </div>
-    </aside> 
+                <?php endwhile; ?>
+            </div>
+        </aside>
+    <?php else: ?>
+        <p>无热门标签</p>
+    <?php endif; ?>
 <?php endif; ?>
 
  <!-- 其它 -->
