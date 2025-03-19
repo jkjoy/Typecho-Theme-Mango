@@ -37,13 +37,13 @@ function getPermalinkFromCoid($coid) {
                         <?php echo $comments->author; ?>  
                     <?php endif; ?>
                     
-                    <span style="color: <?php echo $commentApprove['bgColor']; ?>;">
-                        <?php echo $commentApprove['userLevel']; ?>
+                    <span style="margin-left: 10px;font-size:10px;color:<?php echo $commentApprove['bgColor']; ?>;">
+                     <?php echo $commentApprove['userLevel']; ?>
                     </span>
                     </b><span class="says">说道：</span>
                 </div>
                 <div class="comment-metadata">
-                    <a href="<?php $comments->permalink(); ?>">
+                    <a href="<?php $comments->permalink(); ?>" title="<?php $comments->date('Y-m-d H:i'); ?>">
                         <time datetime="<?php $comments->date('Y-m-d H:i'); ?>">
                             <?php $comments->date('Y-m-d H:i'); ?>
                         </time>

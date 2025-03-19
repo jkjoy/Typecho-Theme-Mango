@@ -3,7 +3,7 @@
 从wordpress移植到Typecho的主题，原主题为[Mango]
 
 ## 使用
-> (!tip) 使用前请安装`links`插件
+> [!tip] 使用前请安装`links`插件
 
 1. 下载主题
 2. 解压到`usr/themes/`目录下

@@ -548,14 +548,14 @@ function commentApprove($widget, $email = NULL)
         '基友邮箱1@qq.com'
     );      
     if ($widget->authorId == $widget->ownerId) {      
-        $result['isAuthor'] = 1;
-        $result['userLevel'] = '博主';
-        $result['userDesc'] = '很帅的博主';
+        $result['isAuthor'] = 1;//」
+        $result['userLevel'] = '「博主」<i class="bi bi-award-fill"></i>';
+        $result['userDesc'] = '本站站长';
         $result['bgColor'] = '#FFD67A';
         $result['commentNum'] = 999;
     } else if (in_array($email, $master)) {      
-        $result['userLevel'] = '基友';
-        $result['userDesc'] = '很帅的基友';
+        $result['userLevel'] = '「基友」';
+        $result['userDesc'] = '好基友';
         $result['bgColor'] = '#65C186';
         $result['commentNum'] = 888;
     } else {
@@ -573,33 +573,33 @@ function commentApprove($widget, $email = NULL)
         
         //等级判定
         if($commentNum==1){
-            $result['userLevel'] = '初识';
+            $result['userLevel'] = '「初见」<i class="bi bi-0-circle"></i>';
             $result['bgColor'] = '#999999';
-            $userDesc = '你已经向目的地迈出了第一步！';
+            $userDesc = '人生一大步！';
         } else {
-            if ($commentNum<3 && $commentNum>1) {
-                $result['userLevel'] = '初识';
+            if ($commentNum<10 && $commentNum>1) {
+                $result['userLevel'] = '「初识」<i class="bi bi-1-circle"></i>';
                 $result['bgColor'] = '#999999';
-            }elseif ($commentNum<9 && $commentNum>=3) {
-                $result['userLevel'] = '朋友';
+            }elseif ($commentNum<20 && $commentNum>=10) {
+                $result['userLevel'] = '「相识」<i class="bi bi-2-circle"></i>';
                 $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<27 && $commentNum>=9) {
-                $result['userLevel'] = '好友';
+            }elseif ($commentNum<40 && $commentNum>=20) {
+                $result['userLevel'] = '「熟识」<i class="bi bi-3-circle"></i>';
                 $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<81 && $commentNum>=27) {
-                $result['userLevel'] = '挚友';
+            }elseif ($commentNum<80 && $commentNum>=40) {
+                $result['userLevel'] = '「好友」<i class="bi bi-4-circle"></i>';
                 $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<100 && $commentNum>=81) {
-                $result['userLevel'] = '兄弟';
+            }elseif ($commentNum<160 && $commentNum>=80) {
+                $result['userLevel'] = '「知己」<i class="bi bi-5-circle"></i>';
                 $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum>=100) {
-                $result['userLevel'] = '老铁';
+            }elseif ($commentNum>=160) {
+                $result['userLevel'] = '「挚友」<i class="bi bi-6-circle"></i>';
                 $result['bgColor'] = '#A0DAD0';
             }
-             $userDesc = '你已经向目的地前进了'.$commentNum.'步！'; 
+             $userDesc = '您在本站有'.$commentNum.'条留言！'; 
         }
         if($linkSql){
-            $result['userLevel'] = '博友';
+            $result['userLevel'] = '「博友」';
             $result['bgColor'] = '#21b9bb';
             $userDesc = '🔗'.$linkSql[0]['description'].'&#10;✌️'.$userDesc;
         }
