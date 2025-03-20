@@ -493,10 +493,7 @@ function get_next_post($archive) {
  */
 function get_permalink($cid) {
     try {
-        // 获取系统选项
-        $options = Helper::options();
-        
-        // 获取文章数据
+        // 获取文章对象
         $db = Typecho_Db::get();
         $post = $db->fetchRow($db->select()
             ->from('table.contents')
@@ -507,14 +504,12 @@ function get_permalink($cid) {
             return '';
         }
         
-        // 使用Typecho内置的方法构建链接
-        if ($options->rewrite) {
-            // 伪静态已启用
-            return rtrim($options->siteUrl, '/') . '/archives/' . $cid . '/';
-        } else {
-            // 伪静态未启用
-            return rtrim($options->siteUrl, '/') . '/index.php/archives/' . $cid . '/';
-        }
+        // 构造文章对象
+        $post['type'] = 'post'; // 确保类型为文章
+        $post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
+        
+        // 使用文章对象的 permalink 方法生成链接
+        return $post['permalink'];
     } catch (Exception $e) {
         // 出现异常时使用最简单的方式
         $options = Helper::options();
