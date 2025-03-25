@@ -134,7 +134,7 @@ function get_post_view($archive) {
 
 /**
  * 处理文章点赞
- */
+*/
 if (isset($_POST['action']) && $_POST['action'] == 'specs_zan') {
     handlePostLike();
 }
@@ -175,47 +175,7 @@ function handlePostLike() {
 }
 
 /**
- * 注册AJAX处理函数 - 加载更多文章
- */
-if (isset($_POST['action']) && $_POST['action'] == 'load_more') {
-    loadMorePosts();
-}
-
-/**
- * 加载更多文章的处理函数
- */
-function loadMorePosts() {
-    if (isset($_POST['page'])) {
-        $db = Typecho_Db::get();
-        $pageSize = 5; // 每页文章数
-        $currentPage = intval($_POST['page']); // 当前页码
-        
-        // 查询下一页文章
-        $posts = $db->fetchAll($db->select()->from('table.contents')
-            ->where('type = ?', 'post')
-            ->where('status = ?', 'publish')
-            ->order('created', Typecho_Db::SORT_DESC)
-            ->page($currentPage, $pageSize));
-            
-        $result = array();
-        foreach ($posts as $post) {
-            // 组装文章数据
-            $result[] = array(
-                'cid' => $post['cid'],
-                'title' => $post['title'],
-                'permalink' => get_permalink($post['cid']),
-                'date' => date('Y-m-d', $post['created']),
-                'excerpt' => Typecho_Common::subStr(strip_tags($post['text']), 0, 200, '...') 
-            );
-        }
-        
-        echo json_encode($result);
-        exit;
-    }
-}
-
-/**
- * 获取文章总数
+ * 获取用户文章总数
  */
 function getPostsCount() {
     $db = Typecho_Db::get();
