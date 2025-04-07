@@ -87,9 +87,9 @@ function timer_start() {
     $mtime = explode( ' ', microtime() );
     $timestart = $mtime[1] + $mtime[0];
     return true;
-    }
+}
     timer_start();
-    function timer_stop( $display = 0, $precision = 3 ) {
+function timer_stop( $display = 0, $precision = 3 ) {
     global $timestart, $timeend;
     $mtime = explode( ' ', microtime() );
     $timeend = $mtime[1] + $mtime[0];
@@ -99,7 +99,7 @@ function timer_start() {
     echo $r;
     }
     return $r;
-    }
+}
 
 /*
 * 文章浏览数统计
@@ -564,4 +564,19 @@ function commentApprove($widget, $email = NULL)
     } 
     return $result;
 }
- 
+
+/***
+ * 在线状态
+ */
+function get_last_login($user){
+    $user   = '1'; 
+    $now    = time();
+    $db     = Typecho_Db::get();
+    $prefix = $db->getPrefix();
+    $row = $db->fetchRow($db->select('activated')->from('table.users')->where('uid = ?', $user));
+    if ($row) {
+        echo Typecho_I18n::dateWord($row['activated'], $now);
+    } else {
+        echo '博主一直在这里';
+    }
+}

@@ -21,6 +21,7 @@
         </p>
         <?php endif; ?>
         <p><?php _e('页面加载耗时'); ?><?php echo timer_stop();?> </p>
+        <p>💻️ <?php $this->author(); ?> <?php get_last_login(1); ?> 在线</p>
         </div>
 	</div>
 </footer>
