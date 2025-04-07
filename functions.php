@@ -580,3 +580,378 @@ function get_last_login($user){
         echo '博主一直在这里';
     }
 }
+
+/**
+ * 附件列表增强功能
+ * 
+ * @package AttachmentHelper
+ * @category Plugin
+ */
+Typecho_Plugin::factory('admin/write-post.php')->bottom = array('AttachmentHelper', 'addEnhancedFeatures');
+Typecho_Plugin::factory('admin/write-page.php')->bottom = array('AttachmentHelper', 'addEnhancedFeatures');
+
+class AttachmentHelper {
+    public static function addEnhancedFeatures() {
+        ?>
+        <style>
+        /* 附件列表样式 */
+        #file-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            padding: 15px;
+            list-style: none;
+            margin: 0;
+        }
+        
+        #file-list li {
+            position: relative;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 10px;
+            background: #fff;
+            transition: all 0.3s ease;
+            list-style: none;
+            margin: 0;
+        }
+        
+        #file-list li:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        #file-list li.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        /* 图片预览容器 */
+        #file-list .thumb-container {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            margin-bottom: 8px;
+            background: #f5f5f5;
+            overflow: hidden;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #file-list .thumb-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+        
+        #file-list .thumb-container .file-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 40px;
+            color: #999;
+        }
+        
+        /* 文件信息样式 */
+        #file-list .file-info {
+            padding: 5px 0;
+        }
+        
+        #file-list .file-name {
+            font-size: 13px;
+            margin-bottom: 5px;
+            word-break: break-all;
+            color: #333;
+        }
+        
+        #file-list .file-size {
+            font-size: 12px;
+            color: #999;
+        }
+        
+        /* 操作按钮样式 */
+        #file-list .file-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            gap: 8px;
+        }
+        
+        #file-list .file-actions button {
+            flex: 1;
+            padding: 4px 8px;
+            border: none;
+            border-radius: 3px;
+            background: #e0e0e0;
+            color: #333;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        
+        #file-list .file-actions button:hover {
+            background: #d0d0d0;
+        }
+        
+        #file-list .file-actions .btn-insert {
+            background: #467B96;
+            color: white;
+        }
+        
+        #file-list .file-actions .btn-insert:hover {
+            background: #3c6a81;
+        }
+        
+        /* 复选框样式 */
+        #file-list .file-checkbox {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            z-index: 2;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        /* 批量操作按钮样式 */
+        .batch-actions {
+            margin: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .btn-batch {
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;    
+        }
+        
+        .btn-batch.primary {
+            background: #467B96;
+            color: white;
+        }
+        
+        .btn-batch.primary:hover {
+            background: #3c6a81;
+        }
+        
+        .btn-batch.secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+        
+        .btn-batch.secondary:hover {
+            background: #d0d0d0;
+        }
+        
+        /* 上传进度提示 */
+        .upload-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #467B96;
+            transition: width 0.3s ease;
+        }
+        </style>
+        
+        <script>
+        $(document).ready(function() {
+            // 修改默认的文件列表展示方式
+            function updateFileList(newItem = null) {
+                var items = newItem ? $(newItem) : $('#file-list li:not(.enhanced)');
+                
+                items.each(function() {
+                    var $li = $(this);
+                    if ($li.hasClass('enhanced')) return;
+                    
+                    var $title = $li.find('.insert');
+                    var url = $li.data('url');
+                    var isImage = $li.data('image') == 1;
+                    var fileName = $title.text();
+                    var fileSize = $li.find('.info').text().trim();
+                    
+                    // 清空原有内容并重新构建
+                    $li.addClass('enhanced').empty();
+                    
+                    // 添加复选框
+                    $li.append('<input type="checkbox" class="file-checkbox" />');
+                    
+                    // 添加预览容器
+                    var $thumbContainer = $('<div class="thumb-container"></div>');
+                    if (isImage) {
+                        var $img = $('<img src="' + url + '" alt="' + fileName + '" />');
+                        $img.on('load', function() {
+                            $(this).show();
+                        }).on('error', function() {
+                            $(this).replaceWith('<div class="file-icon">🖼️</div>');
+                        });
+                        $thumbContainer.append($img);
+                    } else {
+                        $thumbContainer.append('<div class="file-icon">📄</div>');
+                    }
+                    $li.append($thumbContainer);
+                    
+                    // 添加文件信息
+                    var $fileInfo = $('<div class="file-info"></div>')
+                        .append('<div class="file-name">' + fileName + '</div>')
+                        .append('<div class="file-size">' + fileSize + '</div>');
+                    $li.append($fileInfo);
+                    
+                    // 添加操作按钮
+                    var $actions = $('<div class="file-actions"></div>')
+                        .append('<button type="button" class="btn-insert">插入</button>')
+                        .append('<button type="button" class="btn-delete">删除</button>');
+                    $li.append($actions);
+                });
+            }
+            
+            // 添加批量操作按钮
+            var $batchActions = $('<div class="batch-actions"></div>')
+                .append('<button type="button" class="btn-batch primary" id="batch-insert">批量插入选中</button>')
+                .append('<button type="button" class="btn-batch secondary" id="select-all">全选</button>')
+                .append('<button type="button" class="btn-batch secondary" id="unselect-all">取消全选</button>');
+            $('#file-list').before($batchActions);
+            
+            // 修改插入格式
+            Typecho.insertFileToEditor = function(title, url, isImage) {
+                var textarea = $('#text'), 
+                    sel = textarea.getSelection(),
+                    insertContent = isImage ? '![' + title + '](' + url + ')' : 
+                                            '[' + title + '](' + url + ')';
+                
+                textarea.replaceSelection(insertContent + '\n');
+                textarea.focus();
+            };
+            
+            // 修改 Typecho 的默认上传完成回调
+            var originalUploadComplete = Typecho.uploadComplete;
+            Typecho.uploadComplete = function(attachment) {
+                // 构建新的列表项
+                var newLi = $('<li></li>')
+                    .attr({
+                        'id': 'file-' + attachment.cid,
+                        'data-cid': attachment.cid,
+                        'data-url': attachment.url,
+                        'data-image': attachment.isImage ? 1 : 0
+                    })
+                    .append('<input type="hidden" name="attachment[]" value="' + attachment.cid + '" />')
+                    .append('<a class="insert" title="点击插入文件" href="###">' + attachment.title + '</a>')
+                    .append('<div class="info">' + attachment.bytes + '</div>');
+
+                // 添加到列表开头
+                $('#file-list').prepend(newLi);
+                
+                // 立即更新这个新项目的预览
+                updateFileList(newLi);
+                
+                // 如果有原始的上传完成回调，也执行它
+                if (typeof originalUploadComplete === 'function') {
+                    originalUploadComplete(attachment);
+                }
+            };
+            
+            // 重写文件上传开始回调
+            Typecho.uploadStart = function(file) {
+                var fileName = file.name || '';
+                
+                // 创建一个临时的上传中状态项
+                var loadingLi = $('<li class="loading"></li>')
+                    .attr('id', file.id)
+                    .append('<div class="thumb-container"><div class="file-icon">⏳</div></div>')
+                    .append('<div class="file-info"><div class="file-name">' + fileName + '</div><div class="file-size">上传中...</div></div>')
+                    .append('<div class="upload-progress"></div>');
+                
+                $('#file-list').prepend(loadingLi);
+            };
+            
+            // 绑定事件处理程序
+            $(document).on('click', '.btn-insert', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $li = $(this).closest('li');
+                var title = $li.find('.file-name').text();
+                Typecho.insertFileToEditor(title, $li.data('url'), $li.data('image') == 1);
+            });
+            
+            $('#batch-insert').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var content = '';
+                $('#file-list li').each(function() {
+                    if ($(this).find('.file-checkbox').is(':checked')) {
+                        var $li = $(this);
+                        var title = $li.find('.file-name').text();
+                        var url = $li.data('url');
+                        var isImage = $li.data('image') == 1;
+                        
+                        content += isImage ? '![' + title + '](' + url + ')\n' : 
+                                           '[' + title + '](' + url + ')\n';
+                    }
+                });
+                
+                if (content) {
+                    var textarea = $('#text');
+                    var pos = textarea.getSelection();
+                    var newContent = textarea.val();
+                    newContent = newContent.substring(0, pos.start) + content + newContent.substring(pos.end);
+                    textarea.val(newContent);
+                    textarea.focus();
+                }
+            });
+            
+            $('#select-all').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#file-list .file-checkbox').prop('checked', true);
+                return false;
+            });
+            
+            $('#unselect-all').click(function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#file-list .file-checkbox').prop('checked', false);
+                return false;
+            });
+            
+            // 防止复选框点击事件冒泡
+            $(document).on('click', '.file-checkbox', function(e) {
+                e.stopPropagation();
+            });
+            
+            // 保持原有的删除功能
+            $(document).on('click', '.btn-delete', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $li = $(this).closest('li');
+                if (confirm('确认要删除文件吗?')) {
+                    var cid = $li.data('cid');
+                    $.post(window.TypechoComment.url, 
+                        {'do': 'delete', 'cid': cid},
+                        function() {
+                            $li.fadeOut(function() {
+                                $(this).remove();
+                            });
+                        });
+                }
+            });
+            
+            // 初始化现有文件列表
+            updateFileList();
+        });
+        </script>
+        <?php
+    }
+}
