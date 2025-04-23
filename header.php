@@ -163,7 +163,7 @@
 </div>
 
 <?php if ($this->is('index')): ?>
-<?php $this->need('sticky.php'); ?>
+<?php $this->need('slidesposts.php'); ?>
 <?php endif; ?> 
 <section class="index_area">
     <div class="container">
