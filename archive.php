@@ -16,7 +16,7 @@
         <div class="cat_head">
         <?php if ($this->is('category')): ?>
         <img width="180" height="180" 
-         src="<?php echo $image_path; ?>" 
+         src="<?php echo $categoryImage; ?>" 
          class="attachment-180x180x1 size-180x180x1" 
          alt="<?php echo htmlspecialchars($categoryName); ?>" 
          decoding="async"
