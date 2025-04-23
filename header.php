@@ -44,12 +44,50 @@
                 </h1>
         		<nav class="header-menu">
                     <ul id="menu-menu-1" class="header-menu-ul">
-                    <li id="menu-item-13" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home menu-item-13"><a<?php if ($this->is('index')): ?> class="current"<?php endif; ?> href="<?php $this->options->siteUrl(); ?>"><?php _e('首页'); ?></a></li>
-                    <?php \Widget\Contents\Page\Rows::alloc()->to($pages); ?>
-                    <?php while ($pages->next()): ?>
+                    <li id="menu-item-13" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home menu-item-13">
+                        <a<?php if ($this->is('index')): ?> class="current"<?php endif; ?> href="<?php $this->options->siteUrl(); ?>">
+                        <?php _e('<i class="bi bi-house-door-fill me-1"></i>首页'); ?>
+                        </a>
+                    </li>
+                    <li class="menu-item-has-children">
+                        <a href="#" title="分类">
+                        <i class="bi bi-folder-fill me-1"></i>分类
+                        </a>
+                        <ul class="sub-menu" style="display: none;">
+                        <?php $categories = Typecho_Widget::widget('Widget_Metas_Category_List'); ?>
+                        <?php while($categories->next()): ?>
                         <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
-                               <a<?php if ($this->is('page', $pages->slug)): ?><?php endif; ?> href="<?php $pages->permalink(); ?>" title="<?php $pages->title(); ?>">
-                            <?php $pages->title(); ?></a>
+                            <a href="<?php $categories->permalink(); ?>">
+                            <?php 
+                            switch($categories->slug) {
+                                case 'images': echo '<i class="bi bi-images me-1"></i>';
+                            break;
+                                case 'share': echo '<i class="bi bi-share-fill me-1"></i>';
+                            break;
+                                case 'NULL': echo '<i class="bi bi-speaker-fill me-1"></i>';
+                            break;
+                                case 'memos': echo '<i class="bi bi-chat me-1"></i>';
+                            break;
+                                case 'code': echo '<i class="bi bi-code me-1"></i>';
+                            break;
+                                case 'logs': echo '<i class="bi bi-person-fill me-1"></i>';
+                            break;
+                                case 'test': echo '<i class="bi bi-calendar-fill me-1"></i>';
+                            break;
+                                default: echo '<i class="bi bi-folder-fill me-1"></i>';
+                            } ?>
+                            <?php $categories->name(); ?>
+                            </a>
+                        </li>
+                        <?php endwhile; ?>
+                        </ul>
+                        </li>
+                    <?php $this->widget('Widget_Contents_Page_List')->to($pages); ?>
+                        <?php while($pages->next()): ?>
+                        <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
+                             <a href="<?php $pages->permalink(); ?>">
+                             <?php echo pageIcon($pages->slug, $pages->title); ?>
+                            </a>
                         </li>
                     <?php endwhile; ?>
                     </ul>
@@ -124,7 +162,9 @@
     </div>
 </div>
 
-
+<?php if ($this->is('index')): ?>
+<?php $this->need('sticky.php'); ?>
+<?php endif; ?> 
 <section class="index_area">
     <div class="container">
         <div class="row g-4">

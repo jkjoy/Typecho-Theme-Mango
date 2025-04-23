@@ -155,6 +155,10 @@
     }
     
     #comments form.comment-form .comment-notes {
+        width: 31%;
+        float: left;
+        margin-right: 2%;
+        position: relative;
     }
     
     #comments form.comment-form p input {

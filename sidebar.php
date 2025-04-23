@@ -221,15 +221,25 @@ $gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($emai
             <h3 class="widget-title"><?php _e('其它'); ?></h3>
             <ul class="widget_misc_ul">
                 <?php if ($this->user->hasLogin()): ?>
-                    <li><a href="<?php $this->options->adminUrl(); ?>"><?php _e('进入后台'); ?>
-                            (<?php $this->user->screenName(); ?>)</a></li>
-                    <li><a href="<?php $this->options->logoutUrl(); ?>"><?php _e('退出'); ?></a></li>
+                    <p>
+                        <a href="<?php $this->options->adminUrl(); ?>"><?php _e('<i class="bi bi-box-arrow-in-right me-1"></i> 进入后台'); ?>
+                            (<?php $this->user->screenName(); ?>)
+                        </a>
+                    </p>
+                    <p>
+                        <a href="<?php $this->options->logoutUrl(); ?>"><?php _e('<i class="bi bi-box-arrow-right me-1"></i> 退出'); ?></a>
+                    </p>
                 <?php else: ?>
-                    <li><a href="<?php $this->options->adminUrl('login.php'); ?>"><?php _e('登录'); ?></a>
-                    </li>
+                    <p>
+                        <a href="<?php $this->options->adminUrl('login.php'); ?>"><?php _e('<i class="bi bi-box-arrow-in-right me-1"></i> 登录'); ?></a>
+                    </p>
                 <?php endif; ?>
-                <li><a href="<?php $this->options->feedUrl(); ?>"><?php _e('文章 RSS'); ?></a></li>
-                <li><a href="<?php $this->options->commentsFeedUrl(); ?>"><?php _e('评论 RSS'); ?></a></li>
+                <p>
+                    <a href="<?php $this->options->feedUrl(); ?>"><?php _e('<i class="bi bi-rss me-1"></i> 文章 '); ?></a> 
+                </p>
+                <p>
+                <a href="<?php $this->options->commentsFeedUrl(); ?>"><?php _e('<i class="bi bi-rss-fill me-1"></i> 评论 '); ?></a>
+                </p>
             </ul>
         </aside>
     <?php endif; ?>

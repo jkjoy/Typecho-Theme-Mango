@@ -71,10 +71,12 @@
         </div>
                 <?php } else { ?>
                 <div class="prev_next_box nav_previous">
+                    <a href="javascript:;" title="没有上一篇" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
                     <div class="prev_next_info">
                         <small>上一篇</small>
                         <p>没有了</p>
                     </div>
+                    </a>
                 </div>
                 <?php } ?>
             <!--    /* 获取下一篇文章 */ -->
@@ -89,10 +91,12 @@
                 </div>
                 <?php } else { ?>
                 <div class="prev_next_box nav_next">
+                    <a href="javascript:;" title="没有下一篇" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
                     <div class="prev_next_info">
                     <small>下一篇</small>
                     <p>没有了</p>
                     </div>
+                    </a>
                 </div>
                 <?php } ?>
 				</div>		

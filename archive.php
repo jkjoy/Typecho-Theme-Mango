@@ -1,15 +1,37 @@
 <?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
 <?php $this->need('header.php'); ?>
+<?php
+    $categoryImage = '';
+    if ($this->categories) {
+        $category = $this->categories[0];
+        $categoryId = $category['mid'];
+        $categoryName = $category['name'];
+        $categoryDescription = $category['description']; 
+        $themeUrl = Helper::options()->themeUrl . '/assets/img/';
+        $categoryImage = $themeUrl . $categoryId . '.png';
+    }
+?>
 <div class="col-lg-8">
     <div class="catbox">
         <div class="cat_head">
+        <?php if ($this->is('category')): ?>
+        <img width="180" height="180" 
+         src="<?php echo $image_path; ?>" 
+         class="attachment-180x180x1 size-180x180x1" 
+         alt="<?php echo htmlspecialchars($categoryName); ?>" 
+         decoding="async"
+         loading="lazy">
+        <?php endif; ?>
             <div class="cat_head_r">
             <h2><?php $this->archiveTitle([
-            'category' => _t('分类 %s 下的文章'),
+            'category' => _t('<i class="bi bi-hash me-1"></i>%s'),
             'search'   => _t('包含关键字 %s 的文章'),
-            'tag'      => _t('标签 <i class="bi bi-hash me-1"></i>%s 下的文章'),
+            'tag'      => _t('<i class="bi bi-hash me-1"></i>%s'),
             'author'   => _t('%s 发布的文章')
         ], '', ''); ?></h2>
+        <?php if ($this->is('category')): ?>
+        <p><?php echo $this->getDescription(); ?></p>
+        <?php endif; ?>
             </div>
         </div>
         <div class="post_box">

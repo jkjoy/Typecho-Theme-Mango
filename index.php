@@ -6,7 +6,7 @@
  * 老孙移植
  * @package  Mango 
  * @author 老孙
- * @version 1.0.1
+ * @version 1.1.0
  * @link http://www.imsun.org
  */
 
@@ -43,8 +43,8 @@ $this->need('header.php');
     <?php $content = $this->content; $result = get_post_thumbnail($this); $images = $result['images'];if (!empty($images)): $imageCount = count($images);if($imageCount > 9) { $imageCount = 9;}?>
     <div class="post_images post_img_<?php echo $imageCount; ?>">
         <?php foreach ($images as $image): ?>
-            <a data-fancybox="post-<?php echo $imageCount; ?>" href="<?php echo htmlspecialchars($image); ?>">
-                <img src="<?php echo htmlspecialchars($image); ?>" alt="文章图片">
+            <a data-fancybox="post-<?php $this->cid(); ?>" href="<?php echo htmlspecialchars($image); ?>">
+                <img class="post-thumbnail" src="<?php echo htmlspecialchars($image); ?>" alt="<?php $this->title(); ?>">
             </a>
         <?php endforeach; ?>
     </div>
@@ -85,3 +85,4 @@ if ($this->_currentPage < $totalPages): ?>
 </div>
 <?php $this->need('sidebar.php'); ?>
 <?php $this->need('footer.php'); ?>
+<style></style>

@@ -18,9 +18,16 @@ function themeConfig($form)
         _t('站点 favicon 地址'),
         _t('在这里填入一个图片 URL 地址, 以在浏览器标签页的网站标题前加上一个 favicon')
     );
-    $form->addInput($faviconUrl);    
-
-    $cnavatar = new Typecho_Widget_Helper_Form_Element_Text('cnavatar', NULL, 'https://cravatar.cn/avatar/', _t('Gravatar镜像'), _t('默认https://cravatar.cn/avatar/,建议保持默认'));
+    $form->addInput($faviconUrl); 
+    $slidePosts = new Typecho_Widget_Helper_Form_Element_Text(
+        'slidePosts',
+        NULL,
+        NULL,
+        _t('幻灯片文章'),
+        _t('输入文章的 CID，多个请用英文逗号或空格分隔，如：1,2,3 或 1 2 3')
+    );
+    $form->addInput($slidePosts);   
+    $cnavatar = new Typecho_Widget_Helper_Form_Element_Text('cnavatar', NULL, NULL, _t('Gravatar镜像'), _t('默认https://cravatar.cn/avatar/'));
     $form->addInput($cnavatar);
     $icpbeian = new Typecho_Widget_Helper_Form_Element_Text('icpbeian', NULL, NULL, _t('备案号码'), _t('不填写则不显示'));
     $form->addInput($icpbeian);
@@ -28,7 +35,6 @@ function themeConfig($form)
     $form->addInput($showlinks);
     $tongji = new Typecho_Widget_Helper_Form_Element_Textarea('tongji', NULL, NULL, _t('Footer代码'), _t('在footer中插入代码支持HTML'));
     $form->addInput($tongji);
-
     $sidebarBlock = new \Typecho\Widget\Helper\Form\Element\Checkbox(
         'sidebarBlock',
         [
@@ -41,7 +47,6 @@ function themeConfig($form)
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],
         _t('侧边栏显示')
     );
-
     $form->addInput($sidebarBlock->multiMode());
 }
 
@@ -72,11 +77,8 @@ function time_ago($timestamp) {
 /**
 * Gravatar镜像
 */
-// 获取Typecho的选项
 $options = Typecho_Widget::widget('Widget_Options');
-// 检查cnavatar是否已设置，如果未设置或为空，则使用默认的Gravatar前缀
 $gravatarPrefix = empty($options->cnavatar) ? 'https://cravatar.cn/avatar/' : $options->cnavatar;
-// 定义全局常量__TYPECHO_GRAVATAR_PREFIX__，用于存储Gravatar前缀
 define('__TYPECHO_GRAVATAR_PREFIX__', $gravatarPrefix);
 
 /**
@@ -142,17 +144,14 @@ if (isset($_POST['action']) && $_POST['action'] == 'specs_zan') {
 function handlePostLike() {
     if (isset($_POST['cid'])) {
         $db = Typecho_Db::get();
-        $cid = $_POST['cid'];
-        
+        $cid = $_POST['cid'];     
         // 获取当前点赞数
         $row = $db->fetchRow($db->select('str_value')
             ->from('table.fields')
             ->where('cid = ?', $cid)
-            ->where('name = ?', 'likes'));
-            
+            ->where('name = ?', 'likes'));           
         $likes = isset($row['str_value']) ? intval($row['str_value']) : 0;
-        $likes = $likes + 1;
-        
+        $likes = $likes + 1;       
         // 更新点赞数
         if (isset($row['str_value'])) {
             $db->query($db->update('table.fields')
@@ -167,8 +166,7 @@ function handlePostLike() {
                     'type' => 'str',
                     'str_value' => '1'
                 )));
-        }
-        
+        }        
         echo $likes;
         exit;
     }
@@ -196,41 +194,32 @@ function get_post_thumbnail($post) {
     if (is_array($post)) {
         $post = (object)$post;
     }
-    
     // 获取默认缩略图
-    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
-    
+    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg'; 
     // 初始化返回数组
     $result = array(
         'thumbnail' => $default_thumbnail,
         'images' => array(),
         'count' => 0,
         'total_count' => 0  // 新增：记录实际总数
-    );
-    
+    );  
     // 调试信息
-    error_log('Post object: ' . print_r($post, true));
-    
+    error_log('Post object: ' . print_r($post, true));    
     if (!$post) {
         error_log('No post object provided');
         return $result;
-    }
-    
+    }   
     // 1. 获取文章内容
-    $content = '';
-    
+    $content = '';   
     if (isset($post->text) && !empty($post->text)) {
         $content = $post->text;
     } else if (isset($post->content) && !empty($post->content)) {
         $content = $post->content;
     } else if (method_exists($post, 'content') && is_callable([$post, 'content'])) {
         $content = $post->content();
-    }
-    
-    error_log('Article content length: ' . strlen($content));
-    
-    $images = array();
-    
+    } 
+    error_log('Article content length: ' . strlen($content)); 
+    $images = array();  
     if (!empty($content)) {
         // 2. 匹配所有HTML图片
         preg_match_all('/<img[^>]*src=[\\\'"]([^\\\'"]+)[\\\'"][^>]*>/i', $content, $html_matches);
@@ -242,8 +231,7 @@ function get_post_thumbnail($post) {
                 }
                 $images[] = $img_url;
             }
-        }
-        
+        }      
         // 3. 匹配所有Markdown格式图片
         preg_match_all('/!\[([^\]]*)\]\(([^\)]+)\)/i', $content, $md_matches);
         if (!empty($md_matches[2])) {
@@ -254,54 +242,43 @@ function get_post_thumbnail($post) {
                 }
                 $images[] = $img_url;
             }
-        }
-        
+        }       
         // 4. 匹配所有直接的图片URL
         preg_match_all('/(https?:\/\/[^\s<>\"\']*?\.(?:jpg|jpeg|png|gif|webp))(\?[^\s<>\"\']*)?/i', $content, $url_matches);
         if (!empty($url_matches[1])) {
             $images = array_merge($images, $url_matches[1]);
-        }
-        
+        }       
         // 去重
         $images = array_unique($images);
-        $images = array_values($images); // 重置数组索引
-        
+        $images = array_values($images); // 重置数组索引       
         // 保存实际的总图片数
-        $total_count = count($images);
-        
+        $total_count = count($images);        
         // 如果图片数量超过9张，随机选择9张
         if (count($images) > 9) {
             // 保存第一张图片作为缩略图
-            $thumbnail = $images[0];
-            
+            $thumbnail = $images[0];           
             // 打乱数组顺序
-            shuffle($images);
-            
+            //shuffle($images);          
             // 只保留9张图片
-            $images = array_slice($images, 0, 9);
-            
+            $images = array_slice($images, 0, 9);  
             // 确保缩略图在选中的图片中
             if (!in_array($thumbnail, $images)) {
                 // 替换最后一张图片为缩略图
                 $images[8] = $thumbnail;
             }
         }
-        
         // 更新结果数组
         $result['images'] = $images;
         $result['count'] = count($images);
-        $result['total_count'] = $total_count;  // 保存实际总数
-        
+        $result['total_count'] = $total_count;  // 保存实际总数  
         // 设置缩略图（使用第一张图片）
         if (!empty($images)) {
             $result['thumbnail'] = $images[0];
         }
     }
-    
     error_log('Selected images count: ' . $result['count']);
     error_log('Total images found: ' . $result['total_count']);
     error_log('Thumbnail URL: ' . $result['thumbnail']);
-    
     return $result;
 }
 
@@ -336,8 +313,7 @@ function parse_typecho_content($content) {
                 // 忽略错误，保持原标签不变
             }
         }
-    }
-    
+    }   
     return $content;
 }
 
@@ -582,376 +558,101 @@ function get_last_login($user){
 }
 
 /**
- * 附件列表增强功能
- * 
- * @package AttachmentHelper
- * @category Plugin
+ * 生成页面图标的函数
  */
-Typecho_Plugin::factory('admin/write-post.php')->bottom = array('AttachmentHelper', 'addEnhancedFeatures');
-Typecho_Plugin::factory('admin/write-page.php')->bottom = array('AttachmentHelper', 'addEnhancedFeatures');
+function pageIcon($slug, $title) {
+    $icon = '';
+    if ($slug == 'memos') {
+        $icon = '<i class="bi bi-chat me-1"></i>';
+    } elseif ($slug == 'links') {
+        $icon = '<i class="bi bi-folder-symlink-fill me-1"></i>';
+    } elseif ($slug == 'tags') {
+        $icon = '<i class="bi bi-tags me-1"></i>';
+    } elseif ($slug == 'categories') {
+        $icon = '<i class="bi bi-folder me-1"></i>';
+    } elseif ($slug == 'comments') {
+        $icon = '<i class="bi bi-chat-dots me-1"></i>';
+    } elseif ($slug == 'themes') {
+        $icon = '<i class="bi bi-paint me-1"></i>';
+    } elseif ($slug == 'plugins') {
+        $icon = '<i class="bi bi-plugin me-1"></i>';
+    } elseif ($slug == 'gbook') {
+        $icon = '<i class="bi bi-cloud-arrow-up me-1"></i>';
+    } elseif ($slug == 'search') {
+        $icon = '<i class="bi bi-search me-1"></i>';
+    } elseif ($slug == 'archives') {
+        $icon = '<i class="bi bi-calendar-heart-fill me-1"></i>';
+    } elseif ($slug == 'tools') {
+        $icon = '<i class="bi bi-tools me-1"></i>';
+    } elseif ($slug == 'help') {
+        $icon = '<i class="bi bi-question-circle-fill me-1"></i>';
+    } elseif ($slug == 'about') {
+        $icon = '<i class="bi bi-info-circle-fill me-1"></i>';
+    } 
+    return $icon . $title;
+}
 
-class AttachmentHelper {
-    public static function addEnhancedFeatures() {
-        ?>
-        <style>
-        /* 附件列表样式 */
-        #file-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            padding: 15px;
-            list-style: none;
-            margin: 0;
+/**
+ * 获取幻灯片文章
+ */
+function getSlidesPosts() {
+    // 调试：输出设置值
+    $slides = Helper::options()->slidePosts;
+    echo '<!-- Debug: Slide Settings: ' . htmlspecialchars($slides) . ' -->';
+    
+    if (empty($slides)) {
+        echo '<!-- Debug: No slides configured -->';
+        return array();
+    }
+    
+    // 处理输入的CID，支持逗号或空格分隔
+    $cids = preg_split('/[,\s]+/', $slides);
+    $cids = array_map('intval', $cids);
+    $cids = array_filter($cids);
+    
+    // 调试：输出处理后的CID数组
+    echo '<!-- Debug: Processed CIDs: ' . implode(',', $cids) . ' -->';
+    
+    if (empty($cids)) {
+        echo '<!-- Debug: No valid CIDs after processing -->';
+        return array();
+    }
+    
+    // 查询文章
+    $db = Typecho_Db::get();
+    
+    try {
+        // 构建查询
+        $posts = $db->fetchAll($db->select()
+            ->from('table.contents')
+            ->where('cid IN ?', $cids)
+            ->where('status = ?', 'publish')
+            ->where('type = ?', 'post'));
+        
+        // 调试：输出查询到的文章数量
+        echo '<!-- Debug: Found ' . count($posts) . ' posts -->';
+        
+        // 按照原始顺序重新排序结果
+        $postsMap = array();
+        foreach ($posts as $post) {
+            $postsMap[$post['cid']] = $post;
         }
         
-        #file-list li {
-            position: relative;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 10px;
-            background: #fff;
-            transition: all 0.3s ease;
-            list-style: none;
-            margin: 0;
-        }
-        
-        #file-list li:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        #file-list li.loading {
-            opacity: 0.7;
-            pointer-events: none;
-        }
-        
-        /* 图片预览容器 */
-        #file-list .thumb-container {
-            position: relative;
-            width: 100%;
-            height: 150px;
-            margin-bottom: 8px;
-            background: #f5f5f5;
-            overflow: hidden;
-            border-radius: 3px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #file-list .thumb-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            display: block;
-        }
-        
-        #file-list .thumb-container .file-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-            font-size: 40px;
-            color: #999;
-        }
-        
-        /* 文件信息样式 */
-        #file-list .file-info {
-            padding: 5px 0;
-        }
-        
-        #file-list .file-name {
-            font-size: 13px;
-            margin-bottom: 5px;
-            word-break: break-all;
-            color: #333;
-        }
-        
-        #file-list .file-size {
-            font-size: 12px;
-            color: #999;
-        }
-        
-        /* 操作按钮样式 */
-        #file-list .file-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 8px;
-            gap: 8px;
-        }
-        
-        #file-list .file-actions button {
-            flex: 1;
-            padding: 4px 8px;
-            border: none;
-            border-radius: 3px;
-            background: #e0e0e0;
-            color: #333;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.2s ease;
-        }
-        
-        #file-list .file-actions button:hover {
-            background: #d0d0d0;
-        }
-        
-        #file-list .file-actions .btn-insert {
-            background: #467B96;
-            color: white;
-        }
-        
-        #file-list .file-actions .btn-insert:hover {
-            background: #3c6a81;
-        }
-        
-        /* 复选框样式 */
-        #file-list .file-checkbox {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            z-index: 2;
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-        }
-        
-        /* 批量操作按钮样式 */
-        .batch-actions {
-            margin: 15px;
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-        
-        .btn-batch {
-            padding: 8px 15px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;    
-        }
-        
-        .btn-batch.primary {
-            background: #467B96;
-            color: white;
-        }
-        
-        .btn-batch.primary:hover {
-            background: #3c6a81;
-        }
-        
-        .btn-batch.secondary {
-            background: #e0e0e0;
-            color: #333;
-        }
-        
-        .btn-batch.secondary:hover {
-            background: #d0d0d0;
-        }
-        
-        /* 上传进度提示 */
-        .upload-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: #467B96;
-            transition: width 0.3s ease;
-        }
-        </style>
-        
-        <script>
-        $(document).ready(function() {
-            // 修改默认的文件列表展示方式
-            function updateFileList(newItem = null) {
-                var items = newItem ? $(newItem) : $('#file-list li:not(.enhanced)');
-                
-                items.each(function() {
-                    var $li = $(this);
-                    if ($li.hasClass('enhanced')) return;
-                    
-                    var $title = $li.find('.insert');
-                    var url = $li.data('url');
-                    var isImage = $li.data('image') == 1;
-                    var fileName = $title.text();
-                    var fileSize = $li.find('.info').text().trim();
-                    
-                    // 清空原有内容并重新构建
-                    $li.addClass('enhanced').empty();
-                    
-                    // 添加复选框
-                    $li.append('<input type="checkbox" class="file-checkbox" />');
-                    
-                    // 添加预览容器
-                    var $thumbContainer = $('<div class="thumb-container"></div>');
-                    if (isImage) {
-                        var $img = $('<img src="' + url + '" alt="' + fileName + '" />');
-                        $img.on('load', function() {
-                            $(this).show();
-                        }).on('error', function() {
-                            $(this).replaceWith('<div class="file-icon">🖼️</div>');
-                        });
-                        $thumbContainer.append($img);
-                    } else {
-                        $thumbContainer.append('<div class="file-icon">📄</div>');
-                    }
-                    $li.append($thumbContainer);
-                    
-                    // 添加文件信息
-                    var $fileInfo = $('<div class="file-info"></div>')
-                        .append('<div class="file-name">' + fileName + '</div>')
-                        .append('<div class="file-size">' + fileSize + '</div>');
-                    $li.append($fileInfo);
-                    
-                    // 添加操作按钮
-                    var $actions = $('<div class="file-actions"></div>')
-                        .append('<button type="button" class="btn-insert">插入</button>')
-                        .append('<button type="button" class="btn-delete">删除</button>');
-                    $li.append($actions);
-                });
+        // 按照输入的顺序重新排列文章
+        $sortedPosts = array();
+        foreach ($cids as $cid) {
+            if (isset($postsMap[$cid])) {
+                $sortedPosts[] = $postsMap[$cid];
             }
-            
-            // 添加批量操作按钮
-            var $batchActions = $('<div class="batch-actions"></div>')
-                .append('<button type="button" class="btn-batch primary" id="batch-insert">批量插入选中</button>')
-                .append('<button type="button" class="btn-batch secondary" id="select-all">全选</button>')
-                .append('<button type="button" class="btn-batch secondary" id="unselect-all">取消全选</button>');
-            $('#file-list').before($batchActions);
-            
-            // 修改插入格式
-            Typecho.insertFileToEditor = function(title, url, isImage) {
-                var textarea = $('#text'), 
-                    sel = textarea.getSelection(),
-                    insertContent = isImage ? '![' + title + '](' + url + ')' : 
-                                            '[' + title + '](' + url + ')';
-                
-                textarea.replaceSelection(insertContent + '\n');
-                textarea.focus();
-            };
-            
-            // 修改 Typecho 的默认上传完成回调
-            var originalUploadComplete = Typecho.uploadComplete;
-            Typecho.uploadComplete = function(attachment) {
-                // 构建新的列表项
-                var newLi = $('<li></li>')
-                    .attr({
-                        'id': 'file-' + attachment.cid,
-                        'data-cid': attachment.cid,
-                        'data-url': attachment.url,
-                        'data-image': attachment.isImage ? 1 : 0
-                    })
-                    .append('<input type="hidden" name="attachment[]" value="' + attachment.cid + '" />')
-                    .append('<a class="insert" title="点击插入文件" href="###">' + attachment.title + '</a>')
-                    .append('<div class="info">' + attachment.bytes + '</div>');
-
-                // 添加到列表开头
-                $('#file-list').prepend(newLi);
-                
-                // 立即更新这个新项目的预览
-                updateFileList(newLi);
-                
-                // 如果有原始的上传完成回调，也执行它
-                if (typeof originalUploadComplete === 'function') {
-                    originalUploadComplete(attachment);
-                }
-            };
-            
-            // 重写文件上传开始回调
-            Typecho.uploadStart = function(file) {
-                var fileName = file.name || '';
-                
-                // 创建一个临时的上传中状态项
-                var loadingLi = $('<li class="loading"></li>')
-                    .attr('id', file.id)
-                    .append('<div class="thumb-container"><div class="file-icon">⏳</div></div>')
-                    .append('<div class="file-info"><div class="file-name">' + fileName + '</div><div class="file-size">上传中...</div></div>')
-                    .append('<div class="upload-progress"></div>');
-                
-                $('#file-list').prepend(loadingLi);
-            };
-            
-            // 绑定事件处理程序
-            $(document).on('click', '.btn-insert', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var $li = $(this).closest('li');
-                var title = $li.find('.file-name').text();
-                Typecho.insertFileToEditor(title, $li.data('url'), $li.data('image') == 1);
-            });
-            
-            $('#batch-insert').click(function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var content = '';
-                $('#file-list li').each(function() {
-                    if ($(this).find('.file-checkbox').is(':checked')) {
-                        var $li = $(this);
-                        var title = $li.find('.file-name').text();
-                        var url = $li.data('url');
-                        var isImage = $li.data('image') == 1;
-                        
-                        content += isImage ? '![' + title + '](' + url + ')\n' : 
-                                           '[' + title + '](' + url + ')\n';
-                    }
-                });
-                
-                if (content) {
-                    var textarea = $('#text');
-                    var pos = textarea.getSelection();
-                    var newContent = textarea.val();
-                    newContent = newContent.substring(0, pos.start) + content + newContent.substring(pos.end);
-                    textarea.val(newContent);
-                    textarea.focus();
-                }
-            });
-            
-            $('#select-all').click(function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $('#file-list .file-checkbox').prop('checked', true);
-                return false;
-            });
-            
-            $('#unselect-all').click(function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                $('#file-list .file-checkbox').prop('checked', false);
-                return false;
-            });
-            
-            // 防止复选框点击事件冒泡
-            $(document).on('click', '.file-checkbox', function(e) {
-                e.stopPropagation();
-            });
-            
-            // 保持原有的删除功能
-            $(document).on('click', '.btn-delete', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                var $li = $(this).closest('li');
-                if (confirm('确认要删除文件吗?')) {
-                    var cid = $li.data('cid');
-                    $.post(window.TypechoComment.url, 
-                        {'do': 'delete', 'cid': cid},
-                        function() {
-                            $li.fadeOut(function() {
-                                $(this).remove();
-                            });
-                        });
-                }
-            });
-            
-            // 初始化现有文件列表
-            updateFileList();
-        });
-        </script>
-        <?php
+        }
+        
+        return array_map(function($post) {
+            return Typecho_Widget::widget('Widget_Abstract_Contents')->push($post);
+        }, $sortedPosts);
+        
+    } catch (Exception $e) {
+        // 错误处理并输出调试信息
+        echo '<!-- Debug: Error: ' . htmlspecialchars($e->getMessage()) . ' -->';
+        return array();
     }
 }

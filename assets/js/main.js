@@ -72,40 +72,74 @@ function setDark() {
   document.addEventListener("scroll", handleScroll)
   
 
-  //点赞
+  // 点赞功能
   $(document).ready(function(){
-    // 使用事件委托处理点赞
-    $(document).on('click', '.specsZan', function(e){
-        e.preventDefault();
-        var $this = $(this);
-        var cid = $this.data('id');
-        
-        if($this.hasClass('loading')) return false;
-        
-        $this.addClass('loading');
-        
-        $.ajax({
-            url: window.location.href,
-            type: 'POST',
-            data: {
-                action: 'specs_zan',
-                cid: cid
-            },
-            success: function(data){
-                $this.find('.count').text(data);
-                $this.addClass('done');
-                setTimeout(function(){
-                    $this.removeClass('done');
-                }, 1000);
-            },
-            complete: function(){
-                $this.removeClass('loading');
-            }
-        });
-        
-        return false;
-    });
-    
+  // 检查 Cookie 函数
+  function checkLikeCookie(cid) {
+      return document.cookie.indexOf('post_like_' + cid) !== -1;
+  }
+  
+  // 设置 Cookie 函数
+  function setLikeCookie(cid) {
+      const expires = new Date();
+      expires.setHours(23, 59, 59, 999);
+      document.cookie = `post_like_${cid}=1; expires=${expires.toUTCString()}; path=/`;
+  }
+
+  // 使用事件委托处理点赞
+  $(document).on('click', '.specsZan', function(e){
+      e.preventDefault();
+      var $this = $(this);
+      var cid = $this.data('id');
+      
+      // 检查是否已经点赞
+      if(checkLikeCookie(cid)) {
+          return false;
+      }
+      
+      // 检查是否正在加载
+      if($this.hasClass('loading')) return false;
+      
+      // 添加加载状态
+      $this.addClass('loading');
+      
+      // 发送点赞请求
+      $.ajax({
+          url: window.location.href,
+          type: 'POST',
+          data: {
+              action: 'specs_zan',
+              cid: cid
+          },
+          success: function(data){
+              if(data !== 'already_liked') {
+                  // 更新点赞数
+                  $this.find('.count').text(data);
+                  // 添加已点赞状态，但不移除
+                  $this.addClass('done');
+                  // 设置 Cookie
+                  setLikeCookie(cid);
+              }
+          },
+          complete: function(){
+              // 只移除 loading 状态，保持 done 状态
+              $this.removeClass('loading');
+          }
+      });
+      
+      return false;
+  });
+
+  // 页面加载时检查已点赞状态
+  $('.specsZan').each(function() {
+      var $this = $(this);
+      var cid = $this.data('id');
+      if(checkLikeCookie(cid)) {
+          $this.addClass('done');
+      }
+  });
+});
+   
     // 加载更多文章
     $(document).on('click', '.post-read-more a', function(e){
         e.preventDefault();
@@ -154,8 +188,7 @@ function setDark() {
         
         return false;
     });
-});
-
+ 
 // 确保Bootstrap组件正确初始化
 document.addEventListener('DOMContentLoaded', function() {
   // 手动处理菜单按钮点击事件

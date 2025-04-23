@@ -126,10 +126,7 @@ function getPermalinkFromCoid($coid) {
                         </p>
                         <?php endif; ?>                       
                         <p class="comment-form-comment">
-                            <textarea rows="8" cols="50" name="text" id="textarea" class="textarea" 
-                                    onkeydown="if(event.ctrlKey&&event.keyCode==13){document.getElementById('misubmit').click();return false};" 
-                                    placeholder="雁过留声,人过留名" 
-                                    required><?php $this->remember('text'); ?></textarea>
+                            <textarea rows="8" cols="50" name="text" id="textarea" class="textarea"  onkeydown="if(event.ctrlKey&&event.keyCode==13){document.getElementById('misubmit').click();return false};"  placeholder="雁过留声,人过留名"  required><?php $this->remember('text'); ?></textarea>
                         </p>
                         <p class="form-submit">
                             <button type="submit" class="submit" id="misubmit">提交评论</button>
