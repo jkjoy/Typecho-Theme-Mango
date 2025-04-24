@@ -60,21 +60,11 @@
                     <?php if($this->fields->summary){echo $this->fields->summary;} else {$this->excerpt(180);}?>      
                 </p>
         </div>
-<?php
-// 获取文章内容
-$content = $this->content;
-preg_match_all('/<img.+src=[\'"]([^\'"]+)[\'"].*>/i', $content, $matches);
-$images = array_filter($matches[1], function($url) {
-    $extension = strtolower(pathinfo($url, PATHINFO_EXTENSION));
-    return $extension !== 'svg';
-});
-if (!empty($images)):
-    $imageCount = count($images);
-?>
+    <?php $content = $this->content; $result = get_post_thumbnail($this); $images = $result['images'];if (!empty($images)): $imageCount = count($images);if($imageCount > 9) { $imageCount = 9;}?>
     <div class="post_images post_img_<?php echo $imageCount; ?>">
         <?php foreach ($images as $image): ?>
-            <a data-fancybox="post-1" href="<?php echo htmlspecialchars($image); ?>">
-                <img src="<?php echo htmlspecialchars($image); ?>" alt="文章图片">
+            <a data-fancybox="post-<?php $this->cid(); ?>" href="<?php echo htmlspecialchars($image); ?>">
+                <img class="post-thumbnail" src="<?php echo htmlspecialchars($image); ?>" alt="<?php $this->title(); ?>">
             </a>
         <?php endforeach; ?>
     </div>
