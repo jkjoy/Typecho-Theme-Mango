@@ -154,13 +154,6 @@
         border-bottom: 1px solid #848484;
     }
     
-    #comments form.comment-form .comment-notes {
-        width: 31%;
-        float: left;
-        margin-right: 2%;
-        position: relative;
-    }
-    
     #comments form.comment-form p input {
         width: 100%;
         background-color: #f7f7f7;
@@ -294,9 +287,6 @@
         padding: 12px 25px;
         margin-bottom: 0px;
         margin-top: 0px;
-    }
-    
-    #comments .layoutSingleColumn .comment-respond {
     }
     
     #comments .layoutSingleColumn .comment-respond .comment-reply-title {

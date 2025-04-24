@@ -118,7 +118,7 @@ function getPermalinkFromCoid($coid) {
                         <p class="comment-form-author">
                             <input placeholder="称呼 *" type="text" name="author" id="author" class="text" value="<?php echo $previousAuthor; ?>" required />
                         </p>
-                        <p class="comment-notes">
+                        <p class="comment-form-email">
                             <input placeholder="邮箱<?php if ($this->options->commentsRequireMail): ?> *<?php endif; ?>" type="email" name="mail" id="mail" class="text" value="<?php echo $previousEmail; ?>"<?php if ($this->options->commentsRequireMail): ?> required<?php endif; ?> />
                         </p>
                         <p class="comment-form-url">

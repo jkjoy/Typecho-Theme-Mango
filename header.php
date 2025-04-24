@@ -68,11 +68,31 @@
                             break;
                                 case 'memos': echo '<i class="bi bi-chat me-1"></i>';
                             break;
-                                case 'code': echo '<i class="bi bi-code me-1"></i>';
+                                case 'codes': echo '<i class="bi bi-code me-1"></i>';
                             break;
                                 case 'logs': echo '<i class="bi bi-person-fill me-1"></i>';
                             break;
                                 case 'test': echo '<i class="bi bi-calendar-fill me-1"></i>';
+                            break;
+                                case 'tools': echo '<i class="bi bi-tools me-1"></i>';
+                            break;
+                                case 'music': echo '<i class="bi bi-music-note me-1"></i>';
+                            break;
+                                case 'links': echo '<i class="bi bi-link me-1"></i>';
+                            break;
+                                case 'video': echo '<i class="bi bi-camera-video me-1"></i>';
+                            break;
+                                case 'life': echo '<i class="bi bi-heart-fill me-1"></i>';
+                            break;
+                                case 'study': echo '<i class="bi bi-book-fill me-1"></i>';
+                            break;
+                                case 'news': echo '<i class="bi bi-newspaper me-1"></i>';
+                            break;
+                                case 'themes': echo '<i class="bi bi-palette me-1"></i>';
+                            break;
+                                case 'plugins': echo '<i class="bi bi-gear-fill me-1"></i>';
+                            break;
+                                case 'photo': echo '<i class="bi bi-images me-1"></i>';
                             break;
                                 default: echo '<i class="bi bi-folder-fill me-1"></i>';
                             } ?>
@@ -165,6 +185,7 @@
 <?php if ($this->is('index')): ?>
 <?php $this->need('slidesposts.php'); ?>
 <?php endif; ?> 
+
 <section class="index_area">
     <div class="container">
         <div class="row g-4">

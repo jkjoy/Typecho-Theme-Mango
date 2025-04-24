@@ -563,21 +563,17 @@ function get_last_login($user){
 function pageIcon($slug, $title) {
     $icon = '';
     if ($slug == 'memos') {
-        $icon = '<i class="bi bi-chat me-1"></i>';
+        $icon = '<i class="bi bi-chat-fill me-1"></i>';
     } elseif ($slug == 'links') {
         $icon = '<i class="bi bi-folder-symlink-fill me-1"></i>';
     } elseif ($slug == 'tags') {
-        $icon = '<i class="bi bi-tags me-1"></i>';
+        $icon = '<i class="bi bi-tags-fill me-1"></i>';
     } elseif ($slug == 'categories') {
-        $icon = '<i class="bi bi-folder me-1"></i>';
+        $icon = '<i class="bi bi-folder-fill me-1"></i>';
     } elseif ($slug == 'comments') {
-        $icon = '<i class="bi bi-chat-dots me-1"></i>';
-    } elseif ($slug == 'themes') {
-        $icon = '<i class="bi bi-paint me-1"></i>';
-    } elseif ($slug == 'plugins') {
-        $icon = '<i class="bi bi-plugin me-1"></i>';
+        $icon = '<i class="bi bi-chat-dots-fill me-1"></i>';
     } elseif ($slug == 'gbook') {
-        $icon = '<i class="bi bi-cloud-arrow-up me-1"></i>';
+        $icon = '<i class="bi bi-cloud-arrow-up-fill me-1"></i>';
     } elseif ($slug == 'search') {
         $icon = '<i class="bi bi-search me-1"></i>';
     } elseif ($slug == 'archives') {

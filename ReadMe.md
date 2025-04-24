@@ -17,5 +17,48 @@
 
 ## 更新日志
 
+### 1.1.0
+- 添加了菜单icon,匹配slug显示图标
+- 添加了分类icon,匹配slug显示图标
+- 添加了分类页面图片,匹配mid显示图片,图片在主题`assets/img`目录下,后缀名为`.png`
+- 添加了首页幻灯片的显示,在主题设置中配置幻灯片的文章cids,多个用逗号分隔,文章必须包含图片
+- 修复评论区的样式问题
+- 优化缩略图样式
+
+| 页面slug | icon |
+| ---- | ---- |
+| memos | 📝 |
+| links | 🔗 |
+| about | 👤 |
+| tags | 🏷 |
+| categories | 📂 |
+| search | 🔍 |
+| archives | 📜 |
+| comments | 💬 |
+|help| ❓ |
+| gbook | 📖 |
+
+
+| 分类slug | icon |
+| ---- | ---- |
+| images|<i class="bi bi-images me-1"></i>|
+| share |<i class="bi bi-share-fill me-1"></i>|
+| NULL |<i class="bi bi-speaker-fill me-1"></i>|
+| memos|<i class="bi bi-chat me-1"></i>|
+| codes | <i class="bi bi-code me-1"></i>|
+| logs | <i class="bi bi-person-fill me-1"></i>|
+| test | <i class="bi bi-calendar-fill me-1"></i>|
+| tools | <i class="bi bi-tools me-1"></i>|
+| music | <i class="bi bi-music-note me-1"></i>|
+| links | <i class="bi bi-link me-1"></i>|
+| video | <i class="bi bi-camera-video me-1"></i>|
+| life | <i class="bi bi-heart-fill me-1"></i>|
+| study | <i class="bi bi-book-fill me-1"></i>|
+| news | <i class="bi bi-newspaper me-1"></i>|
+| themes | <i class="bi bi-palette me-1"></i>|
+| plugins | <i class="bi bi-gear-fill me-1"></i>|
+| photo | <i class="bi bi-images me-1"></i>|
+| default | <i class="bi bi-folder-fill me-1"></i>|
+                  
 ### 1.0.0
 - 初始版本
