@@ -6,10 +6,8 @@
 <?php
 // 获取数据库实例
 $db = Typecho_Db::get();
-
 // 获取当前用户
 $user = Typecho_Widget::widget('Widget_User');
-
 // 确定要显示的用户
 if ($user->hasLogin()) {
     // 用户已登录，显示当前用户信息
@@ -56,11 +54,12 @@ $commentCount = $db->fetchRow($db->select('COUNT(*) AS count')
     ->where('authorId = ?', $userId)
     ->where('status = ?', 'approved')
 )['count'];
-
 // 生成 Gravatar 头像 URL
 $email = $targetUser->mail;
-$gravatarUrl = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($email))) . '?s=80&d=mm&r=g';
-$gravatarUrl2x = 'https://gravatar.loli.net/avatar/' . md5(strtolower(trim($email))) . '?s=160&d=mm&r=g';
+$options = Typecho_Widget::widget('Widget_Options');
+$gravatarPrefix = empty($options->cnavatar) ? 'https://cravatar.cn/avatar/' : $options->cnavatar;
+$gravatarUrl = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=80&d=mm&r=g';
+$gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&r=g';
 ?>
 <div class="author_show_head">
     <img alt='<?php echo $targetUser->screenName; ?>' 
