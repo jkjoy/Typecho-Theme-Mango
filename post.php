@@ -60,46 +60,59 @@
 	</div>
         <!-- /** 获取上一篇文章 */ -->
 	<div class="next_prev_posts">
-		<?php $prevPost = get_previous_post($this); if ($prevPost) {$prevThumbnail = get_post_thumbnail($prevPost);$prevThumbnailUrl = $prevThumbnail['thumbnail']; // 获取缩略图URL?>
+		<?php
+            // 先设定默认缩略图地址
+            $defaultThumbnailUrl = Helper::options()->themeUrl . '/assets/img/nopic.svg';
+            $prevThumbnailUrl = $defaultThumbnailUrl;
+            $prevPost = get_previous_post($this);
+            if ($prevPost) {
+                $prevThumbnail = get_post_thumbnail($prevPost);
+                $prevThumbnailUrl = $prevThumbnail['thumbnail'];
+            }
+        ?>
         <div class="prev_next_box nav_previous">
+            <?php if ($prevPost) { ?>
             <a href="<?php echo $prevPost->permalink; ?>" title="<?php echo $prevPost->title; ?>" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
                 <div class="prev_next_info">
                     <small>上一篇</small>
                     <p><?php echo $prevPost->title; ?></p>
                 </div>
             </a>
-        </div>
-                <?php } else { ?>
-                <div class="prev_next_box nav_previous">
-                    <a href="javascript:;" title="没有上一篇" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
-                    <div class="prev_next_info">
-                        <small>上一篇</small>
-                        <p>没有了</p>
-                    </div>
-                    </a>
+            <?php } else { ?>
+            <a href="javascript:;" title="没有上一篇" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
+                <div class="prev_next_info">
+                    <small>上一篇</small>
+                    <p>没有了</p>
                 </div>
-                <?php } ?>
-            <!--    /* 获取下一篇文章 */ -->
-                <?php $nextPost = get_next_post($this);if ($nextPost) {$nextThumbnail = get_post_thumbnail($nextPost);$nextThumbnailUrl = $nextThumbnail['thumbnail']; // 获取缩略图URL?>
-                <div class="prev_next_box nav_next">
-                    <a href="<?php echo $nextPost->permalink; ?>" title="<?php echo $nextPost->title; ?>" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
-                    <div class="prev_next_info">
+            </a>
+            <?php } ?>
+        </div>
+        <?php
+            $nextThumbnailUrl = $defaultThumbnailUrl;
+            $nextPost = get_next_post($this);
+            if ($nextPost) {
+                $nextThumbnail = get_post_thumbnail($nextPost);
+                $nextThumbnailUrl = $nextThumbnail['thumbnail'];
+            }
+        ?>
+        <div class="prev_next_box nav_next">
+            <?php if ($nextPost) { ?>
+            <a href="<?php echo $nextPost->permalink; ?>" title="<?php echo $nextPost->title; ?>" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
+                <div class="prev_next_info">
                     <small>下一篇</small>
                     <p><?php echo $nextPost->title; ?></p>
-                    </div>
-                    </a>
                 </div>
-                <?php } else { ?>
-                <div class="prev_next_box nav_next">
-                    <a href="javascript:;" title="没有下一篇" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
-                    <div class="prev_next_info">
+            </a>
+            <?php } else { ?>
+            <a href="javascript:;" title="没有下一篇" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
+                <div class="prev_next_info">
                     <small>下一篇</small>
                     <p>没有了</p>
-                    </div>
-                    </a>
                 </div>
-                <?php } ?>
-				</div>		
+            </a>
+            <?php } ?>
+        </div>
+	</div>		
     <?php $this->related(6)->to($relatedPosts); if ($relatedPosts->have()):?>
     <div class="post_related mb-3">    
         <h3 class="widget-title">相关文章</h3>
