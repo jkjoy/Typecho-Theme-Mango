@@ -21,7 +21,7 @@ if ($user->hasLogin()) {
             ->from('table.users')
             ->where('group = ?', 'administrator')
             ->limit(1));
-        
+
         if ($adminUser) {
             // 使用管理员信息创建临时用户对象
             $targetUser = new stdClass();
@@ -35,25 +35,26 @@ if ($user->hasLogin()) {
             return;
         }
     } catch (Exception $e) {
-        error_log('获取管理员信息失败: ' . $e->getMessage());
+        // 生产环境不记录异常日志，直接降级
         echo "";
         return;
     }
 }
 // 查询用户的文章数量
-$postCount = $db->fetchRow($db->select('COUNT(*) AS count')
+$postCountRow = $db->fetchRow($db->select('COUNT(*) AS count')
     ->from('table.contents')
     ->where('authorId = ?', $userId)
     ->where('type = ?', 'post')
-    ->where('status = ?', 'publish')
-)['count'];
+    ->where('status = ?', 'publish'));
+$postCount = isset($postCountRow['count']) ? intval($postCountRow['count']) : 0;
 
 // 查询用户的评论数量
-$commentCount = $db->fetchRow($db->select('COUNT(*) AS count')
+$commentCountRow = $db->fetchRow($db->select('COUNT(*) AS count')
     ->from('table.comments')
     ->where('authorId = ?', $userId)
-    ->where('status = ?', 'approved')
-)['count'];
+    ->where('status = ?', 'approved'));
+$commentCount = isset($commentCountRow['count']) ? intval($commentCountRow['count']) : 0;
+
 // 生成 Gravatar 头像 URL
 $email = $targetUser->mail;
 $options = Typecho_Widget::widget('Widget_Options');
@@ -62,21 +63,24 @@ $gravatarUrl = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=80&d=mm&r=g
 $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&r=g';
 ?>
 <div class="author_show_head">
-    <img alt='<?php echo $targetUser->screenName; ?>' 
-         src='<?php echo $gravatarUrl; ?>' 
-         srcset='<?php echo $gravatarUrl2x; ?> 2x' 
-         class='avatar avatar-80 photo' 
-         height='80' width='80' 
-         loading='lazy' 
+    <img alt='<?php echo htmlspecialchars($targetUser->screenName); ?>'
+         src='<?php echo htmlspecialchars($gravatarUrl); ?>'
+         srcset='<?php echo htmlspecialchars($gravatarUrl2x); ?> 2x'
+         class='avatar avatar-80 photo'
+         height='80' width='80'
+         loading='lazy'
          decoding='async'/>
-    <h3><?php echo $targetUser->screenName; ?></h3>
+    <h3><?php echo htmlspecialchars($targetUser->screenName); ?></h3>
     <p></p>
 </div>
 <div class="author_show_info">
     <span><i class="bi bi-book"></i><b>文章</b><?php echo $postCount; ?></span>
     <span><i class="bi bi-chat-square-dots"></i><b>评论</b><?php echo $commentCount; ?></span>
 </div>
-<?php if (!empty($this->options->sidebarBlock) && in_array('ShowRecentPosts', $this->options->sidebarBlock)): ?>
+<?php
+$sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->sidebarBlock : array();
+?>
+<?php if (in_array('ShowRecentPosts', $sidebarBlock)): ?>
 <ul class="author_post">
 <?php
     // 获取指定用户的最近文章
@@ -84,91 +88,91 @@ $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&
     while ($recentPosts->next()):
         $result = get_post_thumbnail($recentPosts);
         $thumbnail = !empty($result['images']) ? $result['images'][0] : $result['thumbnail'];
-        $commentsNum = $recentPosts->commentsNum;
+        $commentsNum = intval($recentPosts->commentsNum);
     ?>
         <li>
             <div class="thumbnail-container">
-                <img width="400" height="280" 
-                     src="<?php echo htmlspecialchars($thumbnail); ?>" 
-                     class="thumbnail" 
-                     alt="<?php echo $recentPosts->title; ?>" 
+                <img width="400" height="280"
+                     src="<?php echo htmlspecialchars($thumbnail); ?>"
+                     class="thumbnail"
+                     alt="<?php echo htmlspecialchars($recentPosts->title); ?>"
                      decoding="async" loading="lazy" />
             </div>
             <div class="author_title">
-                <a href="<?php echo $recentPosts->permalink; ?>" 
-                   class="stretched-link"><?php echo $recentPosts->title; ?></a>
+                <a href="<?php echo htmlspecialchars($recentPosts->permalink); ?>"
+                   class="stretched-link"><?php echo htmlspecialchars($recentPosts->title); ?></a>
                 <p><?php echo $commentsNum . ' 条留言'; ?></p>
             </div>
         </li>
     <?php endwhile; ?>
 </ul>
 <?php endif; ?>
- 
+
 <!-- 热门文章 -->
-<?php if (!empty($this->options->sidebarBlock) && in_array('ShowHotPosts', $this->options->sidebarBlock)): ?>
+<?php if (in_array('ShowHotPosts', $sidebarBlock)): ?>
     <?php
-    $db = Typecho_Db::get();
     try {
-        $result = $db->fetchAll($db->select()
+        $hotPosts = $db->fetchAll($db->select()
             ->from('table.contents')
             ->where('type = ? AND status = ?', 'post', 'publish')
             ->order('commentsNum', Typecho_Db::SORT_DESC)
             ->limit(5)
         );
-
-        if (!empty($result)):
-    ?>
-            <aside id="hot_posts-2" class="widget widget_hot_posts">
-                <h3 class="widget-title">热门文章</h3>
-                <ul class="widget_hot_post">
-                    <?php 
-                    foreach ($result as $post): 
-                        try {
-                            // 使用 Widget_Abstract_Contents 处理文章数据
-                            $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
-                            $post_images = get_post_thumbnail($post);
-                            // 获取缩略图URL，如果没有图片则使用默认图片
-                            $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
-                    ?>
-                            <li class="widget_hot_li">
-                                <img width="400" 
-                                     height="280" 
-                                     src="<?php echo htmlspecialchars($thumbnail); ?>" 
-                                     class="thumbnail" 
-                                     alt="<?php echo htmlspecialchars($temp_post['title']); ?>" 
-                                     decoding="async" 
-                                     loading="lazy">
-                                <div class="hot_post_info">
-                                    <h4>
-                                        <a class="stretched-link" 
-                                           href="<?php echo htmlspecialchars($temp_post['permalink']); ?>">
-                                            <?php echo htmlspecialchars($temp_post['title']); ?>
-                                        </a>
-                                    </h4>
-                                    <p><?php echo intval($temp_post['commentsNum']); ?> 条留言</p>
-                                </div>
-                            </li> 
-                    <?php 
-                        } catch (Exception $e) {
-                            // 捕获并处理异常
-                            echo "处理文章时出错: " . $e->getMessage();
-                        }
-                    endforeach; 
-                    ?>
-                </ul>
-            </aside>
-        <?php else: ?>
-            <p>无热门文章</p>
-        <?php endif; ?>
-    <?php 
     } catch (Exception $e) {
-        // 捕获并处理异常
-        echo "获取热门文章时出错: " . $e->getMessage();
+        $hotPosts = array();
     }
+
+    if (!empty($hotPosts)):
     ?>
+        <aside id="hot_posts-2" class="widget widget_hot_posts">
+            <h3 class="widget-title">热门文章</h3>
+            <ul class="widget_hot_post">
+                <?php
+                foreach ($hotPosts as $post):
+                    try {
+                        // 使用 Widget_Abstract_Contents 处理文章数据
+                        $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
+                        $post_images = get_post_thumbnail($post);
+                        // 获取缩略图URL，如果没有图片则使用默认图片
+                        $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
+                        $title = isset($temp_post['title']) ? htmlspecialchars($temp_post['title']) : '';
+                        $permalink = isset($temp_post['permalink']) ? htmlspecialchars($temp_post['permalink']) : '#';
+                        $commentsNum = isset($temp_post['commentsNum']) ? intval($temp_post['commentsNum']) : 0;
+                ?>
+                        <li class="widget_hot_li">
+                            <img width="400"
+                                 height="280"
+                                 src="<?php echo htmlspecialchars($thumbnail); ?>"
+                                 class="thumbnail"
+                                 alt="<?php echo $title; ?>"
+                                 decoding="async"
+                                 loading="lazy">
+                            <div class="hot_post_info">
+                                <h4>
+                                    <a class="stretched-link"
+                                       href="<?php echo $permalink; ?>">
+                                        <?php echo $title; ?>
+                                    </a>
+                                </h4>
+                                <p><?php echo $commentsNum; ?> 条留言</p>
+                            </div>
+                        </li>
+                <?php
+                    } catch (Exception $e) {
+                        // 忽略单篇异常
+                        continue;
+                    }
+                endforeach;
+                ?>
+            </ul>
+        </aside>
+    <?php else: ?>
+        <p>无热门文章</p>
+    <?php endif; ?>
 <?php endif; ?>
+
 <!-- 最近回复 -->
-<?php if (!empty($this->options->sidebarBlock) && in_array('ShowRecentComments', $this->options->sidebarBlock)): ?>
+<?php if (in_array('ShowRecentComments', $sidebarBlock)): ?>
     <aside id="comments-3" class="widget widget_comments">
         <h3 class="widget-title"><?php _e('最近回复'); ?></h3>
         <ul class="widget_comment_ul">
@@ -182,15 +186,15 @@ $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&
                     <em><?php $comments->author(false); ?></em>
                     <em><?php $comments->date('Y-m-d H:i'); ?></em>
                 </span>
-            </div>
+                </div>
+                </li>
             <?php endwhile; ?>
-            </li>
-            </ul>
-        </aside>
-<?php endif; ?> 
- 
+        </ul>
+    </aside>
+<?php endif; ?>
+
 <!-- 热门标签 -->
-<?php if (!empty($this->options->sidebarBlock) && in_array('ShowTags', $this->options->sidebarBlock)): ?>
+<?php if (in_array('ShowTags', $sidebarBlock)): ?>
     <?php
     // 获取热门标签
     $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20');
@@ -200,8 +204,8 @@ $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&
             <h3 class="widget-title">热门标签</h3>
             <div class="tagcloud">
                 <?php while ($tags->next()): ?>
-                    <a href="<?php $tags->permalink(); ?>" 
-                       title="<?php $tags->name(); ?> (<?php $tags->count(); ?> 篇文章)" 
+                    <a href="<?php $tags->permalink(); ?>"
+                       title="<?php $tags->name(); ?> (<?php $tags->count(); ?> 篇文章)"
                        class="tag-item">
                         <?php $tags->name(); ?>
                     </a>
@@ -214,32 +218,31 @@ $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&
 <?php endif; ?>
 
  <!-- 其它 -->
-  
-<?php if (!empty($this->options->sidebarBlock) && in_array('ShowOther', $this->options->sidebarBlock)): ?>
+<?php if (in_array('ShowOther', $sidebarBlock)): ?>
         <aside id="misc-2" class="widget widget_misc">
             <h3 class="widget-title"><?php _e('其它'); ?></h3>
             <ul class="widget_misc_ul">
                 <?php if ($this->user->hasLogin()): ?>
-                    <p>
+                    <li>
                         <a href="<?php $this->options->adminUrl(); ?>"><?php _e('<i class="bi bi-box-arrow-in-right me-1"></i> 进入后台'); ?>
                             (<?php $this->user->screenName(); ?>)
                         </a>
-                    </p>
-                    <p>
+                    </li>
+                    <li>
                         <a href="<?php $this->options->logoutUrl(); ?>"><?php _e('<i class="bi bi-box-arrow-right me-1"></i> 退出'); ?></a>
-                    </p>
+                    </li>
                 <?php else: ?>
-                    <p>
+                    <li>
                         <a href="<?php $this->options->adminUrl('login.php'); ?>"><?php _e('<i class="bi bi-box-arrow-in-right me-1"></i> 登录'); ?></a>
-                    </p>
+                    </li>
                 <?php endif; ?>
-                <p>
-                    <a href="<?php $this->options->feedUrl(); ?>"><?php _e('<i class="bi bi-rss me-1"></i> 文章 '); ?></a> 
-                </p>
-                <p>
-                <a href="<?php $this->options->commentsFeedUrl(); ?>"><?php _e('<i class="bi bi-rss-fill me-1"></i> 评论 '); ?></a>
-                </p>
+                <li>
+                    <a href="<?php $this->options->feedUrl(); ?>"><?php _e('<i class="bi bi-rss me-1"></i> 文章 '); ?></a>
+                </li>
+                <li>
+                    <a href="<?php $this->options->commentsFeedUrl(); ?>"><?php _e('<i class="bi bi-rss-fill me-1"></i> 评论 '); ?></a>
+                </li>
             </ul>
         </aside>
-    <?php endif; ?>
+<?php endif; ?>
 </div>
