@@ -213,7 +213,10 @@ $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->si
             </div>
         </aside>
     <?php else: ?>
-        <p>无热门标签</p>
+        <aside id="hot_tags-2" class="widget widget_hot_tags">
+            <h3 class="widget-title">热门标签</h3>
+            <div class="tagcloud"></div>
+        </aside>
     <?php endif; ?>
 <?php endif; ?>
 
