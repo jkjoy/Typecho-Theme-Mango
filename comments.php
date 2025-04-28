@@ -14,6 +14,9 @@ function getPermalinkFromCoid($coid) {
         <div class="layoutSingleColumn">
             <?php $this->comments()->to($comments); ?>
             <?php 
+            $previousAuthor = isset($_COOKIE['__typecho_remember_author']) ? htmlspecialchars($_COOKIE['__typecho_remember_author']) : '';
+            $previousEmail = isset($_COOKIE['__typecho_remember_mail']) ? htmlspecialchars($_COOKIE['__typecho_remember_mail']) : '';
+            $previousUrl = isset($_COOKIE['__typecho_remember_url']) ? htmlspecialchars($_COOKIE['__typecho_remember_url']) : '';          
             $language = isset($_SERVER['HTTP_ACCEPT_LANGUAGE']) ? $_SERVER['HTTP_ACCEPT_LANGUAGE'] : '';
             if($this->allow('comment') && stripos($language, 'zh') > -1): 
             ?>

@@ -593,26 +593,16 @@ function pageIcon($slug, $title) {
  * 获取幻灯片文章
  */
 function getSlidesPosts() {
-    // ---- 调试代码移除 start ----
-    // $slides = Helper::options()->slidePosts;
-    // echo '<!-- Debug: Slide Settings: ' . htmlspecialchars($slides) . ' -->';
-    // ---- 调试代码移除 end ----
     $slides = Helper::options()->slidePosts;
     if (empty($slides)) {
-        // echo '<!-- Debug: No slides configured -->';
         return array();
     }
-    
-    // 处理输入的CID，支持逗号或空格分隔
+
     $cids = preg_split('/[,\s]+/', $slides);
     $cids = array_map('intval', $cids);
     $cids = array_filter($cids);
-    
-    // ---- 调试代码移除 start ----
-    // echo '<!-- Debug: Processed CIDs: ' . implode(',', $cids) . ' -->';
-    // ---- 调试代码移除 end ----
+
     if (empty($cids)) {
-        // echo '<!-- Debug: No valid CIDs after processing -->';
         return array();
     }
     
@@ -626,18 +616,11 @@ function getSlidesPosts() {
             ->where('cid IN ?', $cids)
             ->where('status = ?', 'publish')
             ->where('type = ?', 'post'));
-        
-        // ---- 调试代码移除 start ----
-        // echo '<!-- Debug: Found ' . count($posts) . ' posts -->';
-        // ---- 调试代码移除 end ----
-        
-        // 按照原始顺序重新排序结果
         $postsMap = array();
         foreach ($posts as $post) {
             $postsMap[$post['cid']] = $post;
         }
-        
-        // 按照输入的顺序重新排列文章
+
         $sortedPosts = array();
         foreach ($cids as $cid) {
             if (isset($postsMap[$cid])) {
@@ -650,9 +633,6 @@ function getSlidesPosts() {
         }, $sortedPosts);
         
     } catch (Exception $e) {
-        // ---- 调试代码移除 start ----
-        // echo '<!-- Debug: Error: ' . htmlspecialchars($e->getMessage()) . ' -->';
-        // ---- 调试代码移除 end ----
         return array();
     }
 }
