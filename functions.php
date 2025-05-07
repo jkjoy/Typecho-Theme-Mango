@@ -190,97 +190,86 @@ function getPostsCount() {
  * @return array 包含缩略图URL、所有图片数组(最多9张)和实际图片总数
  */
 function get_post_thumbnail($post) {
-    // 将数组转换为对象
-    if (is_array($post)) {
-        $post = (object)$post;
-    }
-    // 获取默认缩略图
+    if (is_array($post)) $post = (object)$post;
     $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg'; 
-    // 初始化返回数组
     $result = array(
         'thumbnail' => $default_thumbnail,
         'images' => array(),
+        'cropped_images' => array(), // 新增
         'count' => 0,
-        'total_count' => 0  // 新增：记录实际总数
+        'total_count' => 0 
     );  
-    // ---- 调试代码移除 start ----
-    // error_log('Post object: ' . print_r($post, true));    
-    // ---- 调试代码移除 end ----
-    if (!$post) {
-        // error_log('No post object provided');
-        return $result;
-    }   
-    // 1. 获取文章内容
-    $content = '';   
-    if (isset($post->text) && !empty($post->text)) {
-        $content = $post->text;
-    } else if (isset($post->content) && !empty($post->content)) {
-        $content = $post->content;
-    } else if (method_exists($post, 'content') && is_callable([$post, 'content'])) {
-        $content = $post->content();
-    } 
-    // error_log('Article content length: ' . strlen($content)); 
-    $images = array();  
+    if (!$post) return $result;
+    $theme_dir = basename(dirname(__FILE__));
+    $content = '';
+    if (!empty($post->text)) $content = $post->text;
+    else if (!empty($post->content)) $content = $post->content;
+    else if (method_exists($post, 'content') && is_callable([$post, 'content'])) $content = $post->content();
+    $images = array();
     if (!empty($content)) {
-        // 2. 匹配所有HTML图片
-        preg_match_all('/<img[^>]*src=[\\\'"]([^\\\'"]+)[\\\'"][^>]*>/i', $content, $html_matches);
+        preg_match_all('/<img[^>]*src=[\'"]([^\'"]+)[\'"][^>]*>/i', $content, $html_matches);
         if (!empty($html_matches[1])) {
             foreach ($html_matches[1] as $img_url) {
-                // 处理相对路径
                 if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
                     $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
                 }
                 $images[] = $img_url;
             }
-        }      
-        // 3. 匹配所有Markdown格式图片
-        preg_match_all('/!\[([^\]]*)\]\(([^\)]+)\)/i', $content, $md_matches);
-        if (!empty($md_matches[2])) {
-            foreach ($md_matches[2] as $img_url) {
-                // 处理相对路径
-                if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
-                    $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
-                }
-                $images[] = $img_url;
-            }
-        }       
-        // 4. 匹配所有直接的图片URL
-        preg_match_all('/(https?:\/\/[^\s<>\"\']*?\.(?:jpg|jpeg|png|gif|webp))(\?[^\s<>\"\']*)?/i', $content, $url_matches);
-        if (!empty($url_matches[1])) {
-            $images = array_merge($images, $url_matches[1]);
-        }       
+        }
         // 去重
         $images = array_unique($images);
-        $images = array_values($images); // 重置数组索引       
-        // 保存实际的总图片数
-        $total_count = count($images);        
-        // 如果图片数量超过9张，随机选择9张
+        $images = array_values($images);
+        $total_count = count($images);
         if (count($images) > 9) {
-            // 保存第一张图片作为缩略图
-            $thumbnail = $images[0];           
-            // 打乱数组顺序
-            //shuffle($images);          
-            // 只保留9张图片
-            $images = array_slice($images, 0, 9);  
-            // 确保缩略图在选中的图片中
+            $thumbnail = $images[0];
+            $images = array_slice($images, 0, 9);
             if (!in_array($thumbnail, $images)) {
-                // 替换最后一张图片为缩略图
                 $images[8] = $thumbnail;
             }
         }
-        // 更新结果数组
+        $cropped_images = array();
+        foreach ($images as $img) {
+            $cropped_images[] = get_thumb($img, $theme_dir);
+        }
         $result['images'] = $images;
+        $result['cropped_images'] = $cropped_images;
         $result['count'] = count($images);
-        $result['total_count'] = $total_count;  // 保存实际总数  
-        // 设置缩略图（使用第一张图片）
+        $result['total_count'] = $total_count;
         if (!empty($images)) {
             $result['thumbnail'] = $images[0];
         }
     }
-    // error_log('Selected images count: ' . $result['count']);
-    // error_log('Total images found: ' . $result['total_count']);
-    // error_log('Thumbnail URL: ' . $result['thumbnail']);
     return $result;
+}
+
+// -- 裁剪缩略图函数 --
+function get_thumb($imgUrl, $theme_dir) {
+    $upload_dir = __DIR__ . '/thumbnails/';
+    if (!is_dir($upload_dir)) {
+        mkdir($upload_dir, 0755, true);
+    }
+    $hash = md5($imgUrl);
+    $thumbnail_path = $upload_dir . $hash . '.jpg';
+    $thumbnail_url = Helper::options()->themeUrl . '/thumbnails/' . $hash . '.jpg';
+    if (file_exists($thumbnail_path)) {
+        return $thumbnail_url;
+    }
+    $img_data = @file_get_contents($imgUrl);
+    if ($img_data === false) return $imgUrl;
+    $src = @imagecreatefromstring($img_data);
+    if (!$src) return $imgUrl;
+    $width = imagesx($src);
+    $height = imagesy($src);
+    $min = max(300, min($width, $height));
+    $size = $min;
+    $src_x = ($width - $size) / 2;
+    $src_y = ($height - $size) / 2;
+    $thumb = imagecreatetruecolor($size, $size);
+    imagecopyresampled($thumb, $src, 0, 0, $src_x, $src_y, $size, $size, $size, $size);
+    imagejpeg($thumb, $thumbnail_path, 90);
+    imagedestroy($src);
+    imagedestroy($thumb);
+    return $thumbnail_url;
 }
 
 /**
@@ -328,10 +317,8 @@ function get_previous_post($archive) {
     if (!$archive->is('single')) {
         return null;
     }
-    
     $db = Typecho_Db::get();
-    $prefix = $db->getPrefix();
-    
+    $prefix = $db->getPrefix();  
     // 获取上一篇文章（按创建时间排序）
     $post = $db->fetchRow($db->select()
         ->from('table.contents')
@@ -343,8 +330,7 @@ function get_previous_post($archive) {
     
     if (!$post) {
         return null;
-    }
-    
+    }  
     // 构建标准化的文章对象
     $result = new stdClass();
     $result->cid = $post['cid'];
@@ -353,20 +339,17 @@ function get_previous_post($archive) {
     $result->created = $post['created'];
     $result->content = isset($post['text']) ? $post['text'] : '';
     $result->text = isset($post['text']) ? $post['text'] : '';
-    $result->permalink = get_permalink($post['cid']);
-    
+    $result->permalink = get_permalink($post['cid']);    
     // 获取文章自定义字段
     $fields = $db->fetchAll($db->select()->from('table.fields')
         ->where('cid = ?', $post['cid']));
-    
     // 添加自定义字段到文章对象
     if ($fields) {
         $result->fields = new stdClass();
         foreach ($fields as $field) {
             $result->fields->{$field['name']} = $field['str_value'] ? $field['str_value'] : $field['int_value'];
         }
-    }
-    
+    } 
     return $result;
 }
 
@@ -380,10 +363,8 @@ function get_next_post($archive) {
     if (!$archive->is('single')) {
         return null;
     }
-    
     $db = Typecho_Db::get();
     $prefix = $db->getPrefix();
-    
     // 获取下一篇文章（按创建时间排序）
     $post = $db->fetchRow($db->select()
         ->from('table.contents')
@@ -396,7 +377,6 @@ function get_next_post($archive) {
     if (!$post) {
         return null;
     }
-    
     // 构建标准化的文章对象
     $result = new stdClass();
     $result->cid = $post['cid'];
@@ -406,11 +386,9 @@ function get_next_post($archive) {
     $result->content = isset($post['text']) ? $post['text'] : '';
     $result->text = isset($post['text']) ? $post['text'] : '';
     $result->permalink = get_permalink($post['cid']);
-    
     // 获取文章自定义字段
     $fields = $db->fetchAll($db->select()->from('table.fields')
         ->where('cid = ?', $post['cid']));
-    
     // 添加自定义字段到文章对象
     if ($fields) {
         $result->fields = new stdClass();
@@ -435,16 +413,13 @@ function get_permalink($cid) {
         $post = $db->fetchRow($db->select()
             ->from('table.contents')
             ->where('cid = ?', $cid)
-            ->where('status = ?', 'publish'));
-            
+            ->where('status = ?', 'publish'));   
         if (!$post) {
             return '';
         }
-        
         // 构造文章对象
         $post['type'] = 'post'; // 确保类型为文章
-        $post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
-        
+        $post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);   
         // 使用文章对象的 permalink 方法生成链接
         return $post['permalink'];
     } catch (Exception $e) {
@@ -472,8 +447,7 @@ function commentApprove($widget, $email = NULL)
         "bgColor" => '',//用户身份或等级背景色
         "commentNum" => 0//评论数量
     );
-    if (empty($email)) return $result;      
-    
+    if (empty($email)) return $result;       
     $result['state'] = 1;
     $master = array(      
         '基友邮箱1@qq.com',
@@ -497,12 +471,10 @@ function commentApprove($widget, $email = NULL)
         $commentNumSql = $db->fetchAll($db->select(array('COUNT(cid)'=>'commentNum'))
             ->from('table.comments')
             ->where('mail = ?', $email));
-        $commentNum = $commentNumSql[0]['commentNum'];
-        
+        $commentNum = $commentNumSql[0]['commentNum'];    
         //获取友情链接
         $linkSql = $db->fetchAll($db->select()->from('table.links')
-            ->where('user = ?',$email));
-        
+            ->where('user = ?',$email));       
         //等级判定
         if($commentNum==1){
             $result['userLevel'] = '「初见」<i class="bi bi-0-circle"></i>';
@@ -597,18 +569,14 @@ function getSlidesPosts() {
     if (empty($slides)) {
         return array();
     }
-
     $cids = preg_split('/[,\s]+/', $slides);
     $cids = array_map('intval', $cids);
     $cids = array_filter($cids);
-
     if (empty($cids)) {
         return array();
     }
-    
     // 查询文章
     $db = Typecho_Db::get();
-    
     try {
         // 构建查询
         $posts = $db->fetchAll($db->select()
@@ -620,18 +588,15 @@ function getSlidesPosts() {
         foreach ($posts as $post) {
             $postsMap[$post['cid']] = $post;
         }
-
         $sortedPosts = array();
         foreach ($cids as $cid) {
             if (isset($postsMap[$cid])) {
                 $sortedPosts[] = $postsMap[$cid];
             }
         }
-        
         return array_map(function($post) {
             return Typecho_Widget::widget('Widget_Abstract_Contents')->push($post);
-        }, $sortedPosts);
-        
+        }, $sortedPosts);    
     } catch (Exception $e) {
         return array();
     }
@@ -691,7 +656,6 @@ class AttachmentHelper {
                 textarea.replaceSelection(insertContent + '\n');
                 textarea.focus();
             };
-
             // 批量插入
             $('#batch-insert').on('click', function(e) {
                 e.preventDefault();
@@ -715,7 +679,6 @@ class AttachmentHelper {
                     textarea.focus();
                 }
             });
-
             $('#select-all').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -728,10 +691,8 @@ class AttachmentHelper {
                 $('#file-list .att-enhanced-checkbox').prop('checked', false);
                 return false;
             });
-
             // 防止复选框冒泡
             $(document).on('click', '.att-enhanced-checkbox', function(e) {e.stopPropagation();});
-
             // 增强文件列表样式，但不破坏li原结构和官方按钮
             function enhanceFileList() {
                 $('#file-list li').each(function() {
@@ -761,10 +722,8 @@ class AttachmentHelper {
                         // 插到插入按钮之前
                         $li.find('.insert').before($thumbContainer);
                     }
-
                 });
             }
-
             // 插入按钮事件
             $(document).on('click', '.btn-insert', function(e) {
                 e.preventDefault();
@@ -773,7 +732,6 @@ class AttachmentHelper {
                 var title = $li.find('.att-enhanced-fname').text();
                 Typecho.insertFileToEditor(title, $li.data('url'), $li.data('image') == 1);
             });
-
             // 上传完成后增强新项
             var originalUploadComplete = Typecho.uploadComplete;
             Typecho.uploadComplete = function(attachment) {
@@ -784,7 +742,6 @@ class AttachmentHelper {
                     originalUploadComplete(attachment);
                 }
             };
-
             // 首次增强
             enhanceFileList();
         });

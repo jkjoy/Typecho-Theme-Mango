@@ -15,7 +15,6 @@ if (!empty($slides)):
                 </button>
                 <?php endforeach; ?>
             </div>
-            
             <!-- 幻灯片内容 -->
             <div class="carousel-inner">
                 <?php foreach ($slides as $index => $post): ?>
@@ -34,8 +33,7 @@ if (!empty($slides)):
                     </a>
                 </div>
                 <?php endforeach; ?>
-            </div>
-            
+            </div>          
             <!-- 控制按钮 -->
             <?php if (count($slides) > 1): ?>
             <button class="carousel-control-prev" type="button">
@@ -55,6 +53,20 @@ if (!empty($slides)):
     object-fit: cover;
     object-position: center;
 }
+/* 添加以下样式使指示器变为圆形 */
+.carousel-indicators button {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;  /* 这行是关键，使元素变为圆形 */
+    padding: 0;
+    margin: 0 5px;
+    border: none;
+    background-color: rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s ease;
+}
+.carousel-indicators button.active {
+    background-color: rgba(0, 0, 0, 0.8);
+}
 </style>
 <script>
 // 轮播图实现
@@ -68,108 +80,86 @@ class Carousel {
             interval: options.interval || 5000,
             duration: options.duration || 600
         };
-        
         this.init();
     }
-    
     init() {
         // 初始化显示第一个
         this.items[0].classList.add('active');
-        
         // 自动播放
         if (this.total > 1) {
             this.autoplay();
-            
             // 绑定事件
             this.bindEvents();
         }
     }
-    
     next() {
         let next = (this.current + 1) % this.total;
         this.slideTo(next);
     }
-    
     prev() {
         let prev = (this.current - 1 + this.total) % this.total;
         this.slideTo(prev);
     }
-    
     slideTo(index) {
-        if (index === this.current) return;
-        
+        if (index === this.current) return;        
         // 移除当前活动项的active类
-        this.items[this.current].classList.remove('active');
-        
+        this.items[this.current].classList.remove('active');       
         // 添加新活动项的active类
-        this.items[index].classList.add('active');
-        
+        this.items[index].classList.add('active');     
         // 更新指示器
         if (this.indicators) {
             this.indicators[this.current].classList.remove('active');
             this.indicators[index].classList.add('active');
-        }
-        
+        }      
         this.current = index;
-    }
-    
+    }  
     autoplay() {
         this.timer = setInterval(() => {
             this.next();
         }, this.options.interval);
-    }
-    
+    }   
     stop() {
         if (this.timer) {
             clearInterval(this.timer);
             this.timer = null;
         }
-    }
-    
+    }   
     bindEvents() {
         // 鼠标悬停暂停
         this.container.addEventListener('mouseenter', () => this.stop());
-        this.container.addEventListener('mouseleave', () => this.autoplay());
-        
+        this.container.addEventListener('mouseleave', () => this.autoplay());    
         // 绑定按钮事件
         const prevBtn = this.container.querySelector('.carousel-control-prev');
-        const nextBtn = this.container.querySelector('.carousel-control-next');
-        
+        const nextBtn = this.container.querySelector('.carousel-control-next');   
         if (prevBtn) {
             prevBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.prev();
             });
-        }
-        
+        }    
         if (nextBtn) {
             nextBtn.addEventListener('click', (e) => {
                 e.preventDefault();
                 this.next();
             });
         }
-        
         // 绑定指示器事件
         this.indicators = this.container.querySelectorAll('.carousel-indicators button');
         this.indicators.forEach((indicator, index) => {
             indicator.addEventListener('click', () => {
                 this.slideTo(index);
             });
-        });
-        
+        });    
         // 触摸事件支持
         let startX = 0;
         let endX = 0;
-        
         this.container.addEventListener('touchstart', (e) => {
             startX = e.touches[0].clientX;
             this.stop();
-        }, { passive: true });
-        
+        }, { passive: true });  
         this.container.addEventListener('touchmove', (e) => {
             endX = e.touches[0].clientX;
-        }, { passive: true });
-        
+        }, { passive: true }); 
         this.container.addEventListener('touchend', () => {
             let diff = startX - endX;
             if (Math.abs(diff) > 50) { // 最小滑动距离
@@ -193,5 +183,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
- 
 <?php endif; ?>

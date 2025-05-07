@@ -6,7 +6,7 @@
  * 老孙移植
  * @package  Mango 
  * @author 老孙
- * @version 1.1.0
+ * @version 1.1.1
  * @link http://www.imsun.org
  */
 
@@ -40,15 +40,22 @@ $this->need('header.php');
                     <?php if($this->fields->summary){echo $this->fields->summary;} else {$this->excerpt(180);}?>      
                 </p>
         </div>
-    <?php $content = $this->content; $result = get_post_thumbnail($this); $images = $result['images'];if (!empty($images)): $imageCount = count($images);if($imageCount > 9) { $imageCount = 9;}?>
-    <div class="post_images post_img_<?php echo $imageCount; ?>">
-        <?php foreach ($images as $image): ?>
-            <a data-fancybox="post-<?php $this->cid(); ?>" href="<?php echo htmlspecialchars($image); ?>">
-                <img class="post-thumbnail" src="<?php echo htmlspecialchars($image); ?>" alt="<?php $this->title(); ?>">
-            </a>
+        <?php
+            $result = get_post_thumbnail($this);
+            $images = $result['images'];
+            $cropped_images = $result['cropped_images'];
+            if (!empty($images)):
+                $imageCount = count($images);
+                    if ($imageCount > 9) $imageCount = 9;
+        ?>
+        <div class="post_images post_img_<?php echo $imageCount; ?>">
+        <?php foreach ($images as $i => $image): ?>
+        <a data-fancybox="post-<?php $this->cid(); ?>" href="<?php echo htmlspecialchars($image); ?>">
+            <img class="post-thumbnail" src="<?php echo htmlspecialchars($cropped_images[$i]); ?>" alt="<?php $this->title(); ?>">
+        </a>
         <?php endforeach; ?>
-    </div>
-    <?php endif; ?>
+        </div>
+        <?php endif; ?>
         <div class="post_loop_tag">
             <?php if ($this->tags): ?>
             <?php foreach ($this->tags as $tag): ?>
@@ -85,4 +92,3 @@ if ($this->_currentPage < $totalPages): ?>
 </div>
 <?php $this->need('sidebar.php'); ?>
 <?php $this->need('footer.php'); ?>
-<style></style>
