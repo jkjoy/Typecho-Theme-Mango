@@ -48,6 +48,21 @@ function themeConfig($form)
         _t('侧边栏显示')
     );
     $form->addInput($sidebarBlock->multiMode());
+        // 深色模式选项
+    $darkModeOptions = array(
+        'auto' => '自动跟随系统',
+        'light' => '浅色模式',
+        'dark' => '深色模式'
+    );
+    
+    $darkMode = new Typecho_Widget_Helper_Form_Element_Radio(
+        'darkMode',
+        $darkModeOptions,
+        'auto',
+        _t('深色模式设置'),
+        _t('选择主题的显示模式')
+    );
+    $form->addInput($darkMode);
 }
 
 /**

@@ -1,4 +1,15 @@
-<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
+<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; 
+// 获取当前设置
+$darkModeSetting = Helper::options()->darkMode ?: 'auto';
+$isDarkMode = false;
+// 判断当前是否应该使用深色模式
+if ($darkModeSetting === 'dark') {
+    $isDarkMode = true;
+} elseif ($darkModeSetting === 'auto') {
+    $hour = date('G');
+    $isDarkMode = ($hour < 6 || $hour >= 18); 
+}
+?>
 <!DOCTYPE HTML>
 <html>
 <head>

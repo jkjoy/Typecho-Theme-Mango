@@ -17,7 +17,31 @@ function setDark() {
       setDark();
     }
   }
-  
+
+  //用户偏好
+  // 检查系统偏好
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+function updateDarkMode() {
+    const userOverride = localStorage.getItem('darkModeOverride');
+    const darkModeSetting = '<?php echo $darkModeSetting; ?>';
+    
+    if (userOverride) {
+        document.documentElement.classList.toggle('dark', userOverride === 'dark');
+    } else if (darkModeSetting === 'auto') {
+        // 如果是自动模式，检查系统偏好或时间
+        const prefersDark = systemPrefersDark || (new Date().getHours() < 6 || new Date().getHours() >= 18);
+        document.documentElement.classList.toggle('dark', prefersDark);
+    } else {
+        document.documentElement.classList.toggle('dark', darkModeSetting === 'dark');
+    }
+}
+
+// 初始设置
+updateDarkMode();
+
+// 监听系统偏好变化
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateDarkMode);
   
   
   jQuery(document).ready(function($){
@@ -35,7 +59,7 @@ function setDark() {
   
   //列表ajax加载
   jQuery(document).ready(function($) {
-  // 删除这个重复的加载更多实现
+
   });
 
 
