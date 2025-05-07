@@ -1,15 +1,4 @@
-<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; 
-// 获取当前设置
-$darkModeSetting = Helper::options()->darkMode ?: 'auto';
-$isDarkMode = false;
-// 判断当前是否应该使用深色模式
-if ($darkModeSetting === 'dark') {
-    $isDarkMode = true;
-} elseif ($darkModeSetting === 'auto') {
-    $hour = date('G');
-    $isDarkMode = ($hour < 6 || $hour >= 18); 
-}
-?>
+<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -32,13 +21,8 @@ if ($darkModeSetting === 'dark') {
     <!-- 通过自有函数输出HTML头部信息 -->
     <?php $this->header(); ?>
 <script>
-  const isDark= localStorage.getItem("isDarkMode");
-  if(isDark==="1"){
-    document.documentElement.classList.add('dark');
-  }else{
-    document.documentElement.classList.remove('dark');
-  }
-</script>
+  var themeMode = '<?php $this->options->darkMode(); ?>'; 
+</script> 
 </head>
 <body class="home blog">
 <header class="header sticky-top">

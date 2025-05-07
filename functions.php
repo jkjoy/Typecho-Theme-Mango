@@ -47,20 +47,16 @@ function themeConfig($form)
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],
         _t('侧边栏显示')
     );
-    $form->addInput($sidebarBlock->multiMode());
-        // 深色模式选项
-    $darkModeOptions = array(
-        'auto' => '自动跟随系统',
-        'light' => '浅色模式',
-        'dark' => '深色模式'
-    );
-    
     $darkMode = new Typecho_Widget_Helper_Form_Element_Radio(
         'darkMode',
-        $darkModeOptions,
+        array(
+            'auto' => '自动跟随系统',
+            'light' => '始终浅色',
+            'dark' => '始终深色'
+        ),
         'auto',
-        _t('深色模式设置'),
-        _t('选择主题的显示模式')
+        '显示模式',
+        '选择站点外观模式。'
     );
     $form->addInput($darkMode);
 }
@@ -230,6 +226,21 @@ function get_post_thumbnail($post) {
                 }
                 $images[] = $img_url;
             }
+        }
+        // Markdown
+        preg_match_all('/!\[([^\]]*)\]\(([^\)]+)\)/i', $content, $md_matches);
+        if (!empty($md_matches[2])) {
+            foreach ($md_matches[2] as $img_url) {
+                if (strpos($img_url, 'http') !== 0 && strpos($img_url, '//') !== 0) {
+                    $img_url = Helper::options()->siteUrl . ltrim($img_url, '/');
+                }
+                $images[] = $img_url;
+            }
+        }
+        // URL直链
+        preg_match_all('/(https?:\/\/[^\s<>\"\']*?\.(?:jpg|jpeg|png|gif|webp))(\?[^\s<>\"\']*)?/i', $content, $url_matches);
+        if (!empty($url_matches[1])) {
+            $images = array_merge($images, $url_matches[1]);
         }
         // 去重
         $images = array_unique($images);
