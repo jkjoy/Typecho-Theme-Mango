@@ -47,6 +47,7 @@ function themeConfig($form)
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],
         _t('侧边栏显示')
     );
+    $form->addInput($sidebarBlock->multiMode());
     $darkMode = new Typecho_Widget_Helper_Form_Element_Radio(
         'darkMode',
         array(
