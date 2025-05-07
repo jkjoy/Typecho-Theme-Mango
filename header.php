@@ -16,13 +16,61 @@
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/bifont/bootstrap-icons.css'); ?>">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/fancybox.css'); ?>">
-    <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>">
     <script type="text/javascript" src="<?php $this->options->themeUrl('assets/js/jquery.min.js'); ?>" id="jquery-min-js"></script>
     <!-- 通过自有函数输出HTML头部信息 -->
     <?php $this->header(); ?>
 <script>
   var themeMode = '<?php $this->options->darkMode(); ?>'; 
+   
+    // 判断系统深色模式
+    function systemPrefersDark() {
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+  
+    // 应用深色/浅色
+    function applyDarkMode(mode) {
+      if (mode === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  
+    // 初始化，根据manualDarkMode优先生效
+    function initDarkMode() {
+      const manual = localStorage.getItem('manualDarkMode');
+      if (manual === 'dark' || manual === 'light') {
+        applyDarkMode(manual);
+      } else if (themeMode === 'auto') {
+        applyDarkMode(systemPrefersDark() ? 'dark' : 'light');
+      } else {
+        applyDarkMode(themeMode);
+      }
+    }
+    initDarkMode();
+  
+    // 监听系统变化（仅自动且未手动时）
+    if (themeMode === 'auto' && !localStorage.getItem('manualDarkMode')) {
+      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
+        initDarkMode();
+      });
+    }
+  
+    // 手动切换
+    function switchDarkMode() {
+      let current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      let target = current === 'dark' ? 'light' : 'dark';
+      applyDarkMode(target);
+      localStorage.setItem('manualDarkMode', target);
+    }
+  
+    // 恢复后台设置（可选按钮用）
+    function resetDarkMode() {
+      localStorage.removeItem('manualDarkMode');
+      initDarkMode();
+    }
 </script> 
+<link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>">
 </head>
 <body class="home blog">
 <header class="header sticky-top">
