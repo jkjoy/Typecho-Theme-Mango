@@ -87,7 +87,7 @@ $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->si
     $recentPosts = Typecho_Widget::widget('Widget_Contents_Post_Recent', 'pageSize=3&uid=' . $userId);
     while ($recentPosts->next()):
         $result = get_post_thumbnail($recentPosts);
-        $thumbnail = !empty($result['images']) ? $result['images'][0] : $result['thumbnail'];
+        $thumbnail = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail'];
         $commentsNum = intval($recentPosts->commentsNum);
     ?>
         <li>
@@ -134,7 +134,7 @@ $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->si
                         $temp_post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);
                         $post_images = get_post_thumbnail($post);
                         // 获取缩略图URL，如果没有图片则使用默认图片
-                        $thumbnail = !empty($post_images['images']) ? $post_images['images'][0] : $post_images['thumbnail'];
+                        $thumbnail = !empty($post_images['cropped_images']) ? $post_images['cropped_images'][0] : $post_images['thumbnail'];
                         $title = isset($temp_post['title']) ? htmlspecialchars($temp_post['title']) : '';
                         $permalink = isset($temp_post['permalink']) ? htmlspecialchars($temp_post['permalink']) : '#';
                         $commentsNum = isset($temp_post['commentsNum']) ? intval($temp_post['commentsNum']) : 0;
