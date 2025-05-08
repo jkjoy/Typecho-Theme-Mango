@@ -51,7 +51,7 @@ function themeConfig($form)
     $darkMode = new Typecho_Widget_Helper_Form_Element_Radio(
         'darkMode',
         array(
-            'auto' => '自动跟随系统',
+            'auto' => '自动切换',
             'light' => '始终浅色',
             'dark' => '始终深色'
         ),

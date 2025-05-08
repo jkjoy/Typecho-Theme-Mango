@@ -18,58 +18,109 @@
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/fancybox.css'); ?>">
     <script type="text/javascript" src="<?php $this->options->themeUrl('assets/js/jquery.min.js'); ?>" id="jquery-min-js"></script>
     <!-- 通过自有函数输出HTML头部信息 -->
-    <?php $this->header(); ?>
-<script>
-  var themeMode = '<?php $this->options->darkMode(); ?>'; 
-   
-    // 判断系统深色模式
-    function systemPrefersDark() {
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    <script>
+(function() {
+  // 检查当前是否在日间时段（6:00-18:00）
+  function isDaytime() {
+    const now = new Date();
+    const hour = now.getHours();
+    return hour >= 6 && hour < 18;
+  }
+  // 后台设置
+  var themeMode = '<?php echo trim($this->options->darkMode()); ?>'; 
+  // 统一使用 isDarkMode 作为存储键，值用 "1"/"0"
+  function setDark() {
+    localStorage.setItem("isDarkMode", "1");
+    document.documentElement.classList.add("dark");
+  }
+  function removeDark() {
+    localStorage.setItem("isDarkMode", "0");
+    document.documentElement.classList.remove("dark");
+  }
+  // 初始化
+  var savedMode = localStorage.getItem("isDarkMode");
+  if (savedMode === "1" || savedMode === "0") {
+    // 用户手动设置过
+    if (savedMode === "1") {
+      setDark();
+    } else {
+      removeDark();
     }
-  
-    // 应用深色/浅色
-    function applyDarkMode(mode) {
-      if (mode === 'dark') {
-        document.documentElement.classList.add('dark');
+  } else if (themeMode === 'auto') {
+    // 自动模式：根据时间判断
+    if (!isDaytime()) {
+      setDark();
+    } else {
+      removeDark();
+    }
+  } else {
+    // 固定模式：跟随后台设置
+    if (themeMode === 'dark') {
+      setDark();
+    } else {
+      removeDark();
+    }
+  }
+  // 在自动模式下设置定时器
+  if (themeMode === 'auto' && !savedMode) {
+    function getNextChangeTime() {
+      const now = new Date();
+      const next = new Date();
+      
+      if (isDaytime()) {
+        next.setHours(18, 0, 0, 0);
       } else {
-        document.documentElement.classList.remove('dark');
+        next.setHours(6, 0, 0, 0);
+        if (next <= now) {
+          next.setDate(next.getDate() + 1);
+        }
+      } 
+      return next.getTime() - now.getTime();
+    }
+    function scheduleNextChange() {
+      const delay = getNextChangeTime();
+      setTimeout(() => {
+        if (!localStorage.getItem("isDarkMode")) {
+          if (isDaytime()) {
+            removeDark();
+          } else {
+            setDark();
+          }
+          scheduleNextChange();
+        }
+      }, delay);
+    }
+    scheduleNextChange();
+  }
+  // 切换按钮函数
+  window.switchDarkMode = function() {
+    let isDark = localStorage.getItem("isDarkMode");
+    if (isDark === "1") {
+      removeDark();
+    } else {
+      setDark();
+    }
+  };
+  // 重置为自动模式
+  window.resetDarkMode = function() {
+    localStorage.removeItem("isDarkMode");
+    if (themeMode === 'auto') {
+      if (isDaytime()) {
+        removeDark();
+      } else {
+        setDark();
+      }
+      scheduleNextChange();
+    } else {
+      if (themeMode === 'dark') {
+        setDark();
+      } else {
+        removeDark();
       }
     }
-  
-    // 初始化，根据manualDarkMode优先生效
-    function initDarkMode() {
-      const manual = localStorage.getItem('manualDarkMode');
-      if (manual === 'dark' || manual === 'light') {
-        applyDarkMode(manual);
-      } else if (themeMode === 'auto') {
-        applyDarkMode(systemPrefersDark() ? 'dark' : 'light');
-      } else {
-        applyDarkMode(themeMode);
-      }
-    }
-    initDarkMode();
-  
-    // 监听系统变化（仅自动且未手动时）
-    if (themeMode === 'auto' && !localStorage.getItem('manualDarkMode')) {
-      window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () {
-        initDarkMode();
-      });
-    }
-  
-    // 手动切换
-    function switchDarkMode() {
-      let current = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      let target = current === 'dark' ? 'light' : 'dark';
-      applyDarkMode(target);
-      localStorage.setItem('manualDarkMode', target);
-    }
-  
-    // 恢复后台设置（可选按钮用）
-    function resetDarkMode() {
-      localStorage.removeItem('manualDarkMode');
-      initDarkMode();
-    }
-</script> 
+  };
+})();
+</script>
 <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>">
 </head>
 <body class="home blog">

@@ -1,43 +1,14 @@
-// 变黑函数
-function setDark() {
-    localStorage.setItem("isDarkMode", "1");
-    document.documentElement.classList.add("dark");
-  }
-  // 变白函数
-  function removeDark() {
-    localStorage.setItem("isDarkMode", "0");
-    document.documentElement.classList.remove("dark");
-  }
-  // switch按钮
-  function switchDarkMode() {
-    let isDark = localStorage.getItem("isDarkMode");
-    if (isDark == '1') {
-      removeDark();
-    } else {
-      setDark();
-    }
-  } 
-
-    // 监听按钮点击
+ // 监听按钮点击
   jQuery(document).ready(function($){
-  
   //table预设calss
   $('.wznrys table').addClass("table");
-  
   });
-  
-  
   $(document).ready(function(){
       //子菜单点击展开
   });
-  
-  
   //列表ajax加载
   jQuery(document).ready(function($) {
-
   });
-
-
   //导航菜单
   function ds_mainmenu(ulclass){
       $(document).ready(function(){
@@ -70,7 +41,6 @@ function setDark() {
   scrollToTopBtn.addEventListener("click", scrollToTop)
   document.addEventListener("scroll", handleScroll)
   
-
   // 点赞功能
   $(document).ready(function(){
   // 检查 Cookie 函数
