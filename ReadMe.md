@@ -1,9 +1,12 @@
 ## 简介
 
-从wordpress移植到Typecho的主题，原主题为[Mango]
+从wordpress移植到Typecho的主题，源主题开源地址为[Mango](https://github.com/HUiTHEME/Mango)
 
 ## 使用
-> [!tip] 使用前请安装`links`插件
+> [!TIP]
+> 使用前请安装`links`插件
+> 需安装GD库扩展包，否则缩略图无法正常显示。
+
 
 1. 下载主题
 2. 解压到`usr/themes/`目录下
@@ -31,16 +34,18 @@
 
 | 页面slug | icon |
 | ---- | ---- |
-| memos | 📝 |
-| links | 🔗 |
-| about | 👤 |
-| tags | 🏷 |
-| categories | 📂 |
-| search | 🔍 |
-| archives | 📜 |
-| comments | 💬 |
-|help| ❓ |
-| gbook | 📖 |
+| memos | <i class="bi bi-chat-fill me-1"></i>|
+| links | <i class="bi bi-folder-symlink-fill me-1"></i>|
+| about | <i class="bi bi-info-circle-fill me-1"></i> |
+| tags |<i class="bi bi-tags-fill me-1"></i> |
+| categories | <i class="bi bi-folder-fill me-1"></i> |
+| search |<i class="bi bi-search me-1"></i>|
+| archives | <i class="bi bi-calendar-heart-fill me-1"></i> |
+| comments | <i class="bi bi-chat-dots-fill me-1"></i> |
+|help| <i class="bi bi-question-circle-fill me-1"></i>|
+| gbook | <i class="bi bi-cloud-arrow-up-fill me-1"></i>|
+| tools | <i class="bi bi-tools me-1"></i>|
+
 
 
 | 分类slug | icon |
