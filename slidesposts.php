@@ -20,10 +20,8 @@ if (!empty($slides)):
                 <?php foreach ($slides as $index => $post): ?>
                 <div class="carousel-item <?php echo $index === 0 ? 'active' : ''; ?>">
                     <a class="banlist" href="<?php echo $post['permalink']; ?>">
-                        <?php 
-                        $thumbnail = get_post_thumbnail($post);
-                        ?>
-                        <img src="<?php echo $thumbnail['thumbnail']; ?>" 
+                    <?php $result = get_post_thumbnail($post);$thumbnail = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail']; ?>
+                        <img src="<?php echo htmlspecialchars($thumbnail); ?>" 
                              alt="<?php echo htmlspecialchars($post['title']); ?>" 
                              decoding="async" 
                              class="post-images"
@@ -178,7 +176,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (carousel) {
         new Carousel(carousel, {
             interval: 5000, // 自动播放间隔，单位毫秒
-            duration: 600  // 动画持续时间，单位毫秒
+            duration: 1000  // 动画持续时间，单位毫秒
         });
     }
 });

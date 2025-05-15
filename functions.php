@@ -19,6 +19,14 @@ function themeConfig($form)
         _t('在这里填入一个图片 URL 地址, 以在浏览器标签页的网站标题前加上一个 favicon')
     );
     $form->addInput($faviconUrl); 
+    $thumbUrl = new \Typecho\Widget\Helper\Form\Element\Text(
+        'thumbUrl',
+        null,
+        null,
+        _t('默认文章缩略图地址'),
+        _t('默认的文章缩略图地址')
+    );    
+    $form->addInput($thumbUrl); 
     $slidePosts = new Typecho_Widget_Helper_Form_Element_Text(
         'slidePosts',
         NULL,
@@ -203,7 +211,13 @@ function getPostsCount() {
  */
 function get_post_thumbnail($post) {
     if (is_array($post)) $post = (object)$post;
-    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg'; 
+    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
+    // 从主题设置中获取自定义缩略图（后台填写的默认地址）
+    $custom_thumbnail = Helper::options()->thumbUrl ?? ''; 
+    // 使用自定义缩略图（如果已设置）
+    if (!empty($custom_thumbnail)) {
+        $default_thumbnail = $custom_thumbnail;
+    }
     $result = array(
         'thumbnail' => $default_thumbnail,
         'images' => array(),
@@ -269,34 +283,94 @@ function get_post_thumbnail($post) {
     return $result;
 }
 
-// -- 裁剪缩略图函数 --
-function get_thumb($imgUrl, $theme_dir) {
+/**
+ * 生成缩略图
+ * 
+ * @param string $imgUrl 原始图片URL
+ * @param array $options 配置选项
+ * @return string 缩略图URL
+ */
+function get_thumb($imgUrl, $options) {
+    $theme_dir = basename(dirname(__FILE__));
     $upload_dir = __DIR__ . '/thumbnails/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+    // 获取默认缩略图URL（用于图片加载失败时）
+    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
+    $custom_thumbnail = Helper::options()->thumbUrl ?? '';
+    if (!empty($custom_thumbnail)) {
+        $default_thumbnail = $custom_thumbnail;
     }
+    // 确保缓存目录存在
+    if (!is_dir($upload_dir)) {
+        if (!@mkdir($upload_dir, 0755, true)) {
+            return $default_thumbnail; // 如果无法创建目录，返回默认图片
+        }
+    }
+    // 生成唯一文件名
     $hash = md5($imgUrl);
-    $thumbnail_path = $upload_dir . $hash . '.jpg';
-    $thumbnail_url = Helper::options()->themeUrl . '/thumbnails/' . $hash . '.jpg';
+    $thumbnail_path = $upload_dir . $hash . '.webp';
+    $thumbnail_url = Helper::options()->themeUrl . '/thumbnails/' . $hash . '.webp';
+    // 如果缩略图已存在，直接返回
     if (file_exists($thumbnail_path)) {
         return $thumbnail_url;
     }
+    // 获取原始图片
     $img_data = @file_get_contents($imgUrl);
-    if ($img_data === false) return $imgUrl;
+    if ($img_data === false) {
+        return $default_thumbnail; // 图片404或无法获取时，返回默认图片
+    }
+    // 创建图片资源
     $src = @imagecreatefromstring($img_data);
-    if (!$src) return $imgUrl;
-    $width = imagesx($src);
-    $height = imagesy($src);
-    $min = max(300, min($width, $height));
-    $size = $min;
-    $src_x = ($width - $size) / 2;
-    $src_y = ($height - $size) / 2;
-    $thumb = imagecreatetruecolor($size, $size);
-    imagecopyresampled($thumb, $src, 0, 0, $src_x, $src_y, $size, $size, $size, $size);
-    imagejpeg($thumb, $thumbnail_path, 90);
-    imagedestroy($src);
-    imagedestroy($thumb);
-    return $thumbnail_url;
+    if (!$src) {
+        return $default_thumbnail; // 图片格式无效或无法创建资源时，返回默认图片
+    }
+    try {
+        $width = imagesx($src);
+        $height = imagesy($src);
+        // 计算缩略图尺寸
+        $target_ratio = 1 / 1;
+        $src_ratio = $width / $height; 
+        if ($src_ratio > $target_ratio) {
+            $new_height = $height;
+            $new_width = $height * $target_ratio;
+            $src_x = ($width - $new_width) / 2;
+            $src_y = 0;
+        } else {
+            $new_width = $width;
+            $new_height = $width / $target_ratio;
+            $src_x = 0;
+            $src_y = ($height - $new_height) / 2;
+        }
+        // 计算最终尺寸
+        $scale = min(400/$new_width, 400/$new_height);
+        $dst_width = (int)($new_width * $scale);
+        $dst_height = (int)($new_height * $scale);
+        // 创建目标图像
+        $thumb = imagecreatetruecolor($dst_width, $dst_height);
+        // 处理透明背景
+        imagealphablending($thumb, false);
+        imagesavealpha($thumb, true);
+        // 重采样
+        imagecopyresampled(
+            $thumb, $src,
+            0, 0, $src_x, $src_y,
+            $dst_width, $dst_height,
+            $new_width, $new_height
+        );
+        // 保存缩略图
+        imagewebp($thumb, $thumbnail_path, 85);
+        return $thumbnail_url;
+    } catch (Exception $e) {
+        // 发生异常时返回默认图片
+        return $default_thumbnail;
+    } finally {
+        // 释放资源
+        if (isset($src)) {
+            imagedestroy($src);
+        }
+        if (isset($thumb)) {
+            imagedestroy($thumb);
+        }
+    }
 }
 
 /**
