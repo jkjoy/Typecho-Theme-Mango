@@ -1,6 +1,27 @@
 <?php
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
+// 兼容性处理：检测Typecho新版本的命名空间
+if (!class_exists('Typecho_Db') && class_exists('\\Typecho\\Db')) {
+    class_alias('\\Typecho\\Db', 'Typecho_Db');
+    class_alias('\\Typecho\\Widget', 'Typecho_Widget');
+    class_alias('\\Typecho\\Widget\\Helper\\Form', 'Typecho_Widget_Helper_Form');
+    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Text', 'Typecho_Widget_Helper_Form_Element_Text');
+    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Radio', 'Typecho_Widget_Helper_Form_Element_Radio');
+    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Checkbox', 'Typecho_Widget_Helper_Form_Element_Checkbox');
+    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Textarea', 'Typecho_Widget_Helper_Form_Element_Textarea');
+    class_alias('\\Typecho\\Cookie', 'Typecho_Cookie');
+    class_alias('\\Typecho\\Plugin', 'Typecho_Plugin');
+    class_alias('\\Typecho\\I18n', 'Typecho_I18n');
+}
+
+// 定义_t函数，如果不存在
+if (!function_exists('_t')) {
+    function _t($string) {
+        return $string;
+    }
+}
+
 function themeConfig($form)
 {
     $logoUrl = new \Typecho\Widget\Helper\Form\Element\Text(
@@ -71,7 +92,7 @@ function themeConfig($form)
 }
 
 /**
- * 将时间戳转换为“多久之前”的格式
+ * 将时间戳转换为"多久之前"的格式
  *
  * @param int $timestamp 时间戳
  * @return string
@@ -97,9 +118,16 @@ function time_ago($timestamp) {
 /**
 * Gravatar镜像
 */
-$options = Typecho_Widget::widget('Widget_Options');
-$gravatarPrefix = empty($options->cnavatar) ? 'https://cravatar.cn/avatar/' : $options->cnavatar;
-define('__TYPECHO_GRAVATAR_PREFIX__', $gravatarPrefix);
+try {
+    $options = Typecho_Widget::widget('Widget_Options');
+    $gravatarPrefix = empty($options->cnavatar) ? 'https://cravatar.cn/avatar/' : $options->cnavatar;
+    define('__TYPECHO_GRAVATAR_PREFIX__', $gravatarPrefix);
+} catch (Exception $e) {
+    error_log('Error in Gravatar settings: ' . $e->getMessage());
+    if (!defined('__TYPECHO_GRAVATAR_PREFIX__')) {
+        define('__TYPECHO_GRAVATAR_PREFIX__', 'https://cravatar.cn/avatar/');
+    }
+}
 
 /**
 * 页面加载时间
@@ -127,31 +155,35 @@ function timer_stop( $display = 0, $precision = 3 ) {
 * 文章浏览数统计
 */
 function get_post_view($archive) {
-    $cid = $archive->cid;
-    $db = Typecho_Db::get();
-    $prefix = $db->getPrefix();
-    if (!array_key_exists('views', $db->fetchRow($db->select()->from('table.contents')))) {
-        $db->query('ALTER TABLE `' . $prefix . 'contents` ADD `views` INT(10) DEFAULT 0;');
+    try {
+        $cid = $archive->cid;
+        $db = Typecho_Db::get();
+        $prefix = $db->getPrefix();
+        if (!array_key_exists('views', $db->fetchRow($db->select()->from('table.contents')))) {
+            $db->query('ALTER TABLE `' . $prefix . 'contents` ADD `views` INT(10) DEFAULT 0;');
+            echo 0;
+            return;
+        }
+        $row = $db->fetchRow($db->select('views')->from('table.contents')->where('cid = ?', $cid));
+        if ($archive->is('single')) {
+            $views = Typecho_Cookie::get('extend_contents_views');
+            if (empty($views)) {
+                $views = array();
+            } else {
+                $views = explode(',', $views);
+            }
+            if (!in_array($cid, $views)) {
+                $db->query($db->update('table.contents')->rows(array('views' => (int)$row['views'] + 1))->where('cid = ?', $cid));
+                array_push($views, $cid);
+                $views = implode(',', $views);
+                Typecho_Cookie::set('extend_contents_views', $views); //记录查看cookie
+            }
+        }
+        echo $row['views'];
+    } catch (Exception $e) {
+        error_log('Error in get_post_view: ' . $e->getMessage());
         echo 0;
-        return;
     }
-    $row = $db->fetchRow($db->select('views')->from('table.contents')->where('cid = ?', $cid));
-    if ($archive->is('single')) {
-        $views = Typecho_Cookie::get('extend_contents_views');
-        if (empty($views)) {
-            $views = array();
-        } else {
-            $views = explode(',', $views);
-        }
-        if (!in_array($cid, $views)) {
-            $db->query($db->update('table.contents')->rows(array('views' => (int)$row['views'] + 1))->where('cid = ?', $cid));
-            array_push($views, $cid);
-            $views = implode(',', $views);
-            Typecho_Cookie::set('extend_contents_views', $views); //记录查看cookie
-            
-        }
-    }
-    echo $row['views'];
 }
 
 /**
@@ -162,32 +194,38 @@ if (isset($_POST['action']) && $_POST['action'] == 'specs_zan') {
 }
 
 function handlePostLike() {
-    if (isset($_POST['cid'])) {
-        $db = Typecho_Db::get();
-        $cid = $_POST['cid'];     
-        // 获取当前点赞数
-        $row = $db->fetchRow($db->select('str_value')
-            ->from('table.fields')
-            ->where('cid = ?', $cid)
-            ->where('name = ?', 'likes'));           
-        $likes = isset($row['str_value']) ? intval($row['str_value']) : 0;
-        $likes = $likes + 1;       
-        // 更新点赞数
-        if (isset($row['str_value'])) {
-            $db->query($db->update('table.fields')
-                ->rows(array('str_value' => $likes))
+    try {
+        if (isset($_POST['cid'])) {
+            $db = Typecho_Db::get();
+            $cid = $_POST['cid'];     
+            // 获取当前点赞数
+            $row = $db->fetchRow($db->select('str_value')
+                ->from('table.fields')
                 ->where('cid = ?', $cid)
-                ->where('name = ?', 'likes'));
-        } else {
-            $db->query($db->insert('table.fields')
-                ->rows(array(
-                    'cid' => $cid,
-                    'name' => 'likes',
-                    'type' => 'str',
-                    'str_value' => '1'
-                )));
-        }        
-        echo $likes;
+                ->where('name = ?', 'likes'));           
+            $likes = isset($row['str_value']) ? intval($row['str_value']) : 0;
+            $likes = $likes + 1;       
+            // 更新点赞数
+            if (isset($row['str_value'])) {
+                $db->query($db->update('table.fields')
+                    ->rows(array('str_value' => $likes))
+                    ->where('cid = ?', $cid)
+                    ->where('name = ?', 'likes'));
+            } else {
+                $db->query($db->insert('table.fields')
+                    ->rows(array(
+                        'cid' => $cid,
+                        'name' => 'likes',
+                        'type' => 'str',
+                        'str_value' => '1'
+                    )));
+            }        
+            echo $likes;
+            exit;
+        }
+    } catch (Exception $e) {
+        error_log('Error in handlePostLike: ' . $e->getMessage());
+        echo 0;
         exit;
     }
 }
@@ -196,11 +234,16 @@ function handlePostLike() {
  * 获取用户文章总数
  */
 function getPostsCount() {
-    $db = Typecho_Db::get();
-    return $db->fetchObject($db->select(array('COUNT(cid)' => 'num'))
-        ->from('table.contents')
-        ->where('type = ?', 'post')
-        ->where('status = ?', 'publish'))->num;
+    try {
+        $db = Typecho_Db::get();
+        return $db->fetchObject($db->select(array('COUNT(cid)' => 'num'))
+            ->from('table.contents')
+            ->where('type = ?', 'post')
+            ->where('status = ?', 'publish'))->num;
+    } catch (Exception $e) {
+        error_log('Error in getPostsCount: ' . $e->getMessage());
+        return 0;
+    }
 }
 
 /**
@@ -566,51 +609,60 @@ function commentApprove($widget, $email = NULL)
         $result['bgColor'] = '#65C186';
         $result['commentNum'] = 888;
     } else {
-        //数据库获取
-        $db = Typecho_Db::get();
-        //获取评论条数
-        $commentNumSql = $db->fetchAll($db->select(array('COUNT(cid)'=>'commentNum'))
-            ->from('table.comments')
-            ->where('mail = ?', $email));
-        $commentNum = $commentNumSql[0]['commentNum'];    
-        //获取友情链接
-        $linkSql = $db->fetchAll($db->select()->from('table.links')
-            ->where('user = ?',$email));       
-        //等级判定
-        if($commentNum==1){
-            $result['userLevel'] = '「初见」<i class="bi bi-0-circle"></i>';
-            $result['bgColor'] = '#999999';
-            $userDesc = '人生一大步！';
-        } else {
-            if ($commentNum<10 && $commentNum>1) {
-                $result['userLevel'] = '「初识」<i class="bi bi-1-circle"></i>';
+        try {
+            //数据库获取
+            $db = Typecho_Db::get();
+            //获取评论条数
+            $commentNumSql = $db->fetchAll($db->select(array('COUNT(cid)'=>'commentNum'))
+                ->from('table.comments')
+                ->where('mail = ?', $email));
+            $commentNum = $commentNumSql[0]['commentNum'];    
+            //获取友情链接
+            $linkSql = $db->fetchAll($db->select()->from('table.links')
+                ->where('user = ?',$email));       
+            //等级判定
+            if($commentNum==1){
+                $result['userLevel'] = '「初见」<i class="bi bi-0-circle"></i>';
                 $result['bgColor'] = '#999999';
-            }elseif ($commentNum<20 && $commentNum>=10) {
-                $result['userLevel'] = '「相识」<i class="bi bi-2-circle"></i>';
-                $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<40 && $commentNum>=20) {
-                $result['userLevel'] = '「熟识」<i class="bi bi-3-circle"></i>';
-                $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<80 && $commentNum>=40) {
-                $result['userLevel'] = '「好友」<i class="bi bi-4-circle"></i>';
-                $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum<160 && $commentNum>=80) {
-                $result['userLevel'] = '「知己」<i class="bi bi-5-circle"></i>';
-                $result['bgColor'] = '#A0DAD0';
-            }elseif ($commentNum>=160) {
-                $result['userLevel'] = '「挚友」<i class="bi bi-6-circle"></i>';
-                $result['bgColor'] = '#A0DAD0';
+                $userDesc = '人生一大步！';
+            } else {
+                if ($commentNum<10 && $commentNum>1) {
+                    $result['userLevel'] = '「初识」<i class="bi bi-1-circle"></i>';
+                    $result['bgColor'] = '#999999';
+                }elseif ($commentNum<20 && $commentNum>=10) {
+                    $result['userLevel'] = '「相识」<i class="bi bi-2-circle"></i>';
+                    $result['bgColor'] = '#A0DAD0';
+                }elseif ($commentNum<40 && $commentNum>=20) {
+                    $result['userLevel'] = '「熟识」<i class="bi bi-3-circle"></i>';
+                    $result['bgColor'] = '#A0DAD0';
+                }elseif ($commentNum<80 && $commentNum>=40) {
+                    $result['userLevel'] = '「好友」<i class="bi bi-4-circle"></i>';
+                    $result['bgColor'] = '#A0DAD0';
+                }elseif ($commentNum<160 && $commentNum>=80) {
+                    $result['userLevel'] = '「知己」<i class="bi bi-5-circle"></i>';
+                    $result['bgColor'] = '#A0DAD0';
+                }elseif ($commentNum>=160) {
+                    $result['userLevel'] = '「挚友」<i class="bi bi-6-circle"></i>';
+                    $result['bgColor'] = '#A0DAD0';
+                }
+                 $userDesc = '您在本站有'.$commentNum.'条留言！'; 
             }
-             $userDesc = '您在本站有'.$commentNum.'条留言！'; 
+            if($linkSql){
+                $result['userLevel'] = '「博友」';
+                $result['bgColor'] = '#21b9bb';
+                $userDesc = '🔗'.$linkSql[0]['description'].'&#10;✌️'.$userDesc;
+            }
+            
+            $result['userDesc'] = $userDesc;
+            $result['commentNum'] = $commentNum;
+        } catch (Exception $e) {
+            error_log('Error in commentApprove function: ' . $e->getMessage());
+            // 设置默认值
+            $result['userLevel'] = '「访客」';
+            $result['bgColor'] = '#999999';
+            $result['userDesc'] = '欢迎留言';
+            $result['commentNum'] = 0;
         }
-        if($linkSql){
-            $result['userLevel'] = '「博友」';
-            $result['bgColor'] = '#21b9bb';
-            $userDesc = '🔗'.$linkSql[0]['description'].'&#10;✌️'.$userDesc;
-        }
-        
-        $result['userDesc'] = $userDesc;
-        $result['commentNum'] = $commentNum;
     } 
     return $result;
 }
@@ -619,14 +671,19 @@ function commentApprove($widget, $email = NULL)
  * 在线状态
  */
 function get_last_login($user){
-    $user   = '1'; 
-    $now    = time();
-    $db     = Typecho_Db::get();
-    $prefix = $db->getPrefix();
-    $row = $db->fetchRow($db->select('activated')->from('table.users')->where('uid = ?', $user));
-    if ($row) {
-        echo Typecho_I18n::dateWord($row['activated'], $now);
-    } else {
+    try {
+        $user   = '1'; 
+        $now    = time();
+        $db     = Typecho_Db::get();
+        $prefix = $db->getPrefix();
+        $row = $db->fetchRow($db->select('activated')->from('table.users')->where('uid = ?', $user));
+        if ($row) {
+            echo Typecho_I18n::dateWord($row['activated'], $now);
+        } else {
+            echo '博主一直在这里';
+        }
+    } catch (Exception $e) {
+        error_log('Error in get_last_login: ' . $e->getMessage());
         echo '博主一直在这里';
     }
 }
@@ -677,8 +734,8 @@ function getSlidesPosts() {
         return array();
     }
     // 查询文章
-    $db = Typecho_Db::get();
     try {
+        $db = Typecho_Db::get();
         // 构建查询
         $posts = $db->fetchAll($db->select()
             ->from('table.contents')
@@ -699,6 +756,7 @@ function getSlidesPosts() {
             return Typecho_Widget::widget('Widget_Abstract_Contents')->push($post);
         }, $sortedPosts);    
     } catch (Exception $e) {
+        error_log('Error in getSlidesPosts: ' . $e->getMessage());
         return array();
     }
 }
