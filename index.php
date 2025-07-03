@@ -3,10 +3,10 @@
  * Mango for Typecho
  * 双栏主题
  * 原作者 huitheme
- * 老孙移植
+ * 老孙博客移植
  * @package  Mango 
  * @author 老孙
- * @version 1.1.2
+ * @version 1.1.3
  * @link http://www.imsun.org
  */
 

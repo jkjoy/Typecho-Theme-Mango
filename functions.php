@@ -1,27 +1,6 @@
 <?php
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 
-// 兼容性处理：检测Typecho新版本的命名空间
-if (!class_exists('Typecho_Db') && class_exists('\\Typecho\\Db')) {
-    class_alias('\\Typecho\\Db', 'Typecho_Db');
-    class_alias('\\Typecho\\Widget', 'Typecho_Widget');
-    class_alias('\\Typecho\\Widget\\Helper\\Form', 'Typecho_Widget_Helper_Form');
-    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Text', 'Typecho_Widget_Helper_Form_Element_Text');
-    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Radio', 'Typecho_Widget_Helper_Form_Element_Radio');
-    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Checkbox', 'Typecho_Widget_Helper_Form_Element_Checkbox');
-    class_alias('\\Typecho\\Widget\\Helper\\Form\\Element\\Textarea', 'Typecho_Widget_Helper_Form_Element_Textarea');
-    class_alias('\\Typecho\\Cookie', 'Typecho_Cookie');
-    class_alias('\\Typecho\\Plugin', 'Typecho_Plugin');
-    class_alias('\\Typecho\\I18n', 'Typecho_I18n');
-}
-
-// 定义_t函数，如果不存在
-if (!function_exists('_t')) {
-    function _t($string) {
-        return $string;
-    }
-}
-
 function themeConfig($form)
 {
     $logoUrl = new \Typecho\Widget\Helper\Form\Element\Text(
@@ -89,6 +68,20 @@ function themeConfig($form)
         '选择站点外观模式。'
     );
     $form->addInput($darkMode);
+}
+
+/**
+ * 关闭评论反垃圾保护
+ * 评论层级突破999
+ * 关闭检查评论来源URL与文章链接是否一致判断
+ * 最新评论显示在前
+ */
+function themeInit($archive)
+{
+    Helper::options()->commentsAntiSpam = false; 
+    Helper::options()->commentsMaxNestingLevels = 999;
+    Helper::options()->commentsOrder = 'DESC';
+    Helper::options()->commentsCheckReferer = false;
 }
 
 /**
