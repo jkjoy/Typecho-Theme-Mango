@@ -83,6 +83,15 @@ function themeInit($archive)
     Helper::options()->commentsOrder = 'DESC';
     Helper::options()->commentsCheckReferer = false;
 }
+/**
+ * 自定义字段
+ */
+function themeFields($layout) {
+    $summary= new Typecho_Widget_Helper_Form_Element_Textarea('summary', NULL, NULL, _t('文章摘要'), _t('自定义摘要'));
+    $layout->addItem($summary);
+    $likes= new Typecho_Widget_Helper_Form_Element_Text('likes', NULL, NULL, _t('点赞数'), _t('文章点赞数'));
+    $layout->addItem($likes);
+}
 
 /**
  * 将时间戳转换为"多久之前"的格式
