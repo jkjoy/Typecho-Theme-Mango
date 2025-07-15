@@ -41,6 +41,8 @@ function themeConfig($form)
     $form->addInput($icpbeian);
     $showlinks = new Typecho_Widget_Helper_Form_Element_Radio('showlinks', ['0' => _t('不显示'), '1' => _t('显示')], '0', _t('友情链接'), _t('是否显示首页友情链接'));
     $form->addInput($showlinks);
+    $loadmore = new Typecho_Widget_Helper_Form_Element_Radio('loadmore', ['0' => _t('页码模式'), '1' => _t('加载更多')], '0', _t('文章列表加载模式'), _t('加载模式'));
+    $form->addInput($loadmore);
     $tongji = new Typecho_Widget_Helper_Form_Element_Textarea('tongji', NULL, NULL, _t('Footer代码'), _t('在footer中插入代码支持HTML'));
     $form->addInput($tongji);
     $sidebarBlock = new \Typecho\Widget\Helper\Form\Element\Checkbox(
@@ -418,163 +420,6 @@ function get_thumb($imgUrl, $options) {
     }
 }
 
-/**
- * 处理Typecho特有的内容格式
- * 
- * @param string $content 文章内容
- * @return string 处理后的内容
- */
-function parse_typecho_content($content) {
-    // 处理[attach]标签
-    if (preg_match_all('/\[attach\](\d+)\[\/attach\]/i', $content, $matches)) {
-        foreach ($matches[1] as $index => $cid) {
-            try {
-                $db = Typecho_Db::get();
-                $attachment = $db->fetchRow($db->select()->from('table.contents')
-                    ->where('cid = ? AND type = ?', $cid, 'attachment'));
-                
-                if ($attachment) {
-                    // 获取附件URL
-                    $attachUrl = isset($attachment['text']) ? $attachment['text'] : '';
-                    if (!empty($attachUrl)) {
-                        // 替换[attach]标签为实际的图片标签
-                        $content = str_replace(
-                            $matches[0][$index],
-                            '<img src="' . $attachUrl . '" alt="附件图片" />',
-                            $content
-                        );
-                    }
-                }
-            } catch (Exception $e) {
-                // 忽略错误，保持原标签不变
-            }
-        }
-    }   
-    return $content;
-}
-
-/**
- * 获取上一篇文章
- * 
- * @param Widget_Archive $archive 当前文章归档对象
- * @return object|null 上一篇文章对象，如果没有则返回null
- */
-function get_previous_post($archive) {
-    if (!$archive->is('single')) {
-        return null;
-    }
-    $db = Typecho_Db::get();
-    $prefix = $db->getPrefix();  
-    // 获取上一篇文章（按创建时间排序）
-    $post = $db->fetchRow($db->select()
-        ->from('table.contents')
-        ->where('table.contents.status = ?', 'publish')
-        ->where('table.contents.created < ?', $archive->created)
-        ->where('table.contents.type = ?', 'post')
-        ->order('table.contents.created', Typecho_Db::SORT_DESC)
-        ->limit(1));
-    
-    if (!$post) {
-        return null;
-    }  
-    // 构建标准化的文章对象
-    $result = new stdClass();
-    $result->cid = $post['cid'];
-    $result->title = $post['title'];
-    $result->slug = $post['slug'];
-    $result->created = $post['created'];
-    $result->content = isset($post['text']) ? $post['text'] : '';
-    $result->text = isset($post['text']) ? $post['text'] : '';
-    $result->permalink = get_permalink($post['cid']);    
-    // 获取文章自定义字段
-    $fields = $db->fetchAll($db->select()->from('table.fields')
-        ->where('cid = ?', $post['cid']));
-    // 添加自定义字段到文章对象
-    if ($fields) {
-        $result->fields = new stdClass();
-        foreach ($fields as $field) {
-            $result->fields->{$field['name']} = $field['str_value'] ? $field['str_value'] : $field['int_value'];
-        }
-    } 
-    return $result;
-}
-
-/**
- * 获取下一篇文章
- * 
- * @param Widget_Archive $archive 当前文章归档对象
- * @return object|null 下一篇文章对象，如果没有则返回null
- */
-function get_next_post($archive) {
-    if (!$archive->is('single')) {
-        return null;
-    }
-    $db = Typecho_Db::get();
-    $prefix = $db->getPrefix();
-    // 获取下一篇文章（按创建时间排序）
-    $post = $db->fetchRow($db->select()
-        ->from('table.contents')
-        ->where('table.contents.status = ?', 'publish')
-        ->where('table.contents.created > ?', $archive->created)
-        ->where('table.contents.type = ?', 'post')
-        ->order('table.contents.created', Typecho_Db::SORT_ASC)
-        ->limit(1));
-    
-    if (!$post) {
-        return null;
-    }
-    // 构建标准化的文章对象
-    $result = new stdClass();
-    $result->cid = $post['cid'];
-    $result->title = $post['title'];
-    $result->slug = $post['slug'];
-    $result->created = $post['created'];
-    $result->content = isset($post['text']) ? $post['text'] : '';
-    $result->text = isset($post['text']) ? $post['text'] : '';
-    $result->permalink = get_permalink($post['cid']);
-    // 获取文章自定义字段
-    $fields = $db->fetchAll($db->select()->from('table.fields')
-        ->where('cid = ?', $post['cid']));
-    // 添加自定义字段到文章对象
-    if ($fields) {
-        $result->fields = new stdClass();
-        foreach ($fields as $field) {
-            $result->fields->{$field['name']} = $field['str_value'] ? $field['str_value'] : $field['int_value'];
-        }
-    }
-    
-    return $result;
-}
-
-/**
- * 获取文章永久链接
- * 
- * @param int $cid 文章ID
- * @return string 文章链接
- */
-function get_permalink($cid) {
-    try {
-        // 获取文章对象
-        $db = Typecho_Db::get();
-        $post = $db->fetchRow($db->select()
-            ->from('table.contents')
-            ->where('cid = ?', $cid)
-            ->where('status = ?', 'publish'));   
-        if (!$post) {
-            return '';
-        }
-        // 构造文章对象
-        $post['type'] = 'post'; // 确保类型为文章
-        $post = Typecho_Widget::widget('Widget_Abstract_Contents')->filter($post);   
-        // 使用文章对象的 permalink 方法生成链接
-        return $post['permalink'];
-    } catch (Exception $e) {
-        // 出现异常时使用最简单的方式
-        $options = Helper::options();
-        return $options->siteUrl . '?cid=' . $cid;
-    }
-}
-
 /**    
  * 评论者认证等级 + 身份    
  *    
@@ -595,21 +440,21 @@ function commentApprove($widget, $email = NULL)
     );
     if (empty($email)) return $result;       
     $result['state'] = 1;
-    $master = array(      
-        '基友邮箱1@qq.com',
-        '基友邮箱1@qq.com'
-    );      
+    //$master = array(      
+    //    '基友邮箱1@qq.com',
+    //    '基友邮箱1@qq.com'
+    //);      
     if ($widget->authorId == $widget->ownerId) {      
         $result['isAuthor'] = 1;//」
         $result['userLevel'] = '「博主」<i class="bi bi-award-fill"></i>';
         $result['userDesc'] = '本站站长';
         $result['bgColor'] = '#FFD67A';
         $result['commentNum'] = 999;
-    } else if (in_array($email, $master)) {      
-        $result['userLevel'] = '「基友」';
-        $result['userDesc'] = '好基友';
-        $result['bgColor'] = '#65C186';
-        $result['commentNum'] = 888;
+    //} else if (in_array($email, $master)) {      
+        //$result['userLevel'] = '「基友」';
+        //$result['userDesc'] = '好基友';
+        //$result['bgColor'] = '#65C186';
+        //$result['commentNum'] = 888;
     } else {
         try {
             //数据库获取
@@ -760,6 +605,35 @@ function getSlidesPosts() {
     } catch (Exception $e) {
         error_log('Error in getSlidesPosts: ' . $e->getMessage());
         return array();
+    }
+}
+
+/**
+ * 自定义图片解析
+ * 
+ * @param string $content 文章内容
+ * @param Typecho_Widget $widget 文章对象
+ * @return string 解析后的文章内容
+ */
+Typecho_Plugin::factory('Widget_Abstract_Contents')->contentEx = array('CustomContentFilter', 'parseImage');
+
+class CustomContentFilter
+{
+    public static function parseImage($content, $widget)
+    {
+        // 确保$content是字符串
+        if (is_array($content)) {
+            return $content;
+        }
+        
+        // 匹配图片标签的正则表达式
+        $pattern = '/<img.*?src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/i';
+        
+        // 替换为指定格式
+        $replacement = '<figure class="size-full"><a href="$1" data-fancybox="gallery"><img decoding="async" src="$1" alt="$2" class="wp-image"/></a></figure>';
+        
+        // 执行替换
+        return preg_replace($pattern, $replacement, $content);
     }
 }
 

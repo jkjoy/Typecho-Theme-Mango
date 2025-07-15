@@ -86,16 +86,16 @@ function getPermalinkFromCoid($coid) {
         <?php endif; ?>
                     <!-- 评论分页 -->
             <nav class="navigation comments-pagination" aria-label="评论分页">
-                <?php $comments->pageNav('','',1,'...',
+                <?php $comments->pageNav('上页','下页',1,'...',
                         array(
                             'wrapTag' => 'div',
-                            'wrapClass' => 'nav-links',
-                            'itemTag' => '',
-                            'textTag' => 'page-numbers current"',
+                            'wrapClass' => 'posts-nav',
+                            'itemTag' => 'span',
+                            'textTag' => 'li',
                             'itemClass' => 'page-numbers',
-                            'currentClass' => 'page-numbers current',
-                            'prevClass' => 'hidden',
-                            'nextClass' => 'hidden'
+                            'currentClass' => 'current',
+                            'prevClass' => 'prev',
+                            'nextClass' => 'next'
                         ));?>           
                     </nav>
                 <?php endif; ?>

@@ -6,7 +6,7 @@
  * 老孙博客移植
  * @package  Mango 
  * @author 老孙
- * @version 1.1.5
+ * @version 1.1.6
  * @link http://www.imsun.org
  */
 
@@ -44,15 +44,19 @@ $this->need('header.php');
             $result = get_post_thumbnail($this);
             $images = $result['images'];
             $cropped_images = $result['cropped_images'];
+            $total_count = $result['total_count'];
             if (!empty($images)):
                 $imageCount = count($images);
-                    if ($imageCount > 9) $imageCount = 9;
-        ?>
+                ?>
         <div class="post_images post_img_<?php echo $imageCount; ?>">
         <?php foreach ($images as $i => $image): ?>
         <a data-fancybox="post-<?php $this->cid(); ?>" href="<?php echo htmlspecialchars($image); ?>">
             <img class="post-thumbnail" src="<?php echo htmlspecialchars($cropped_images[$i]); ?>" alt="<?php $this->title(); ?>">
+            <?php if ($i == 8 && $total_count > 9): ?>
+            <b>+<?php echo $total_count - 9; ?></b>
+            <?php endif; ?>
         </a>
+        <?php if ($i == 8 && $total_count > 9) break; ?>
         <?php endforeach; ?>
         </div>
         <?php endif; ?>
@@ -81,6 +85,18 @@ $this->need('header.php');
 </div>
 <?php endwhile; ?>
 </div>
+<?php if ($this->options->loadmore == 0): ?>
+<?php $this->pageNav('上页','下页',1,'...',array(
+                            'wrapTag' => 'div',
+                            'wrapClass' => 'posts-nav',
+                            'itemTag' => 'span',
+                            'textTag' => 'span',
+                            'itemClass' => 'post-page-numbers',
+                            'currentClass' => 'post-page-numbers current',
+                            'prevClass' => 'hidden',
+                            'nextClass' => 'hidden'
+                        ));?>                    
+<?php else: ?>
 <?php
 $nextPage = $this->_currentPage + 1;
 $totalPages = ceil($this->getTotal() / $this->parameter->pageSize);
@@ -89,6 +105,7 @@ if ($this->_currentPage < $totalPages): ?>
     <?php $this->pageLink('加载更多', 'next'); ?>
     </div>
 <?php endif; ?>  
+<?php endif; ?>
 </div>
 <?php $this->need('sidebar.php'); ?>
 <?php $this->need('footer.php'); ?>
