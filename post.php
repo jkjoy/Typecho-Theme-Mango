@@ -58,73 +58,58 @@
 			</div>
 		</div>
 	</div>
-        <!-- /** 获取上一篇文章 */ -->
-	<div class="next_prev_posts">
-        <div class="prev_next_box nav_previous">
         <?php
-            // 查询上一篇（比当前文章更早的文章）
             $db = Typecho_Db::get();
             $prev = $db->fetchRow($db->select('cid', 'title', 'slug', 'created','text')
                 ->from('table.contents')
-                ->where('created < ?', $this->created)  // 比当前文章更早
-                ->where('type = ?', 'post')            // 只查询文章，排除页面
-                ->where('status = ?', 'publish')       // 只查询已发布的
-                ->order('created', Typecho_Db::SORT_DESC)  // 按时间降序（最近的上一篇）
+                ->where('created < ?', $this->created)
+                ->where('type = ?', 'post')
+                ->where('status = ?', 'publish')
+                ->order('created', Typecho_Db::SORT_DESC)
                 ->limit(1));
             $result = get_post_thumbnail($prev);
             $prevThumbnailUrl = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail'];
-            if ($prev):
-                // 生成正确链接（兼容伪静态和自定义固定链接）
-                $prevUrl = Typecho_Router::url('post', $prev, $this->options->index);
-        ?>
-            <a href="<?php echo $prevUrl; ?>" title="<?php echo $prev['title']; ?>" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
-                <div class="prev_next_info">
-                    <small>上一篇</small>
-                    <p><?php echo $prev['title']; ?></p>
-                </div>
-            </a>
-            <?php else: ?>
-            <a href="javascript:;" title="没有上一篇" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
-                <div class="prev_next_info">
-                    <small>上一篇</small>
-                    <p>没有了</p>
-                </div>
-            </a>
-            <?php endif; ?>
-        </div>
-        <div class="prev_next_box nav_next">
-        <?php
-            // 查询下一篇（比当前文章更新的文章）
             $next = $db->fetchRow($db->select('cid', 'title', 'slug', 'created','text')
                 ->from('table.contents')
-                ->where('created > ?', $this->created)  // 比当前文章更新
-                ->where('type = ?', 'post')            // 只查询文章，排除页面
-                ->where('status = ?', 'publish')        // 只查询已发布的
-                ->order('created', Typecho_Db::SORT_ASC)   // 按时间升序（最早的下一条）
+                ->where('created > ?', $this->created)
+                ->where('type = ?', 'post')
+                ->where('status = ?', 'publish')
+                ->order('created', Typecho_Db::SORT_ASC)
                 ->limit(1));
             $result = get_post_thumbnail($next);
             $nextThumbnailUrl = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail'];
-            if ($next):
-                // 生成正确链接（兼容伪静态和自定义固定链接）
-                $nextUrl = Typecho_Router::url('post', $next, $this->options->index);
         ?>
-            <a href="<?php echo $nextUrl; ?>" title="<?php echo $next['title']; ?>" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
-                <div class="prev_next_info">
-                    <small>下一篇</small>
-                    <p><?php echo $next['title']; ?></p>
-                </div>
-            </a>
+        <div class="next_prev_posts">
+            <div class="prev_next_box nav_previous"<?php if (!$next) echo ' style="width:100%"'; ?>>
+            <?php if ($prev):
+                $prevUrl = Typecho_Router::url('post', $prev, $this->options->index);
+            ?>
+                <a href="<?php echo $prevUrl; ?>" title="<?php echo $prev['title']; ?>" rel="prev" style="background-image: url(<?php echo $prevThumbnailUrl; ?>);">
+                    <div class="prev_next_info">
+                        <small>上一篇</small>
+                        <p><?php echo $prev['title']; ?></p>
+                    </div>
+                </a>
             <?php else: ?>
-            <a href="javascript:;" title="没有下一篇" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
-                <div class="prev_next_info">
-                    <small>下一篇</small>
-                    <p>没有了</p>
-                </div>
-            </a>
+          
             <?php endif; ?>
+            </div>
+            <div class="prev_next_box nav_next"<?php if (!$prev) echo ' style="width:100%"'; ?>>
+            <?php if ($next):
+                $nextUrl = Typecho_Router::url('post', $next, $this->options->index);
+            ?>
+                <a href="<?php echo $nextUrl; ?>" title="<?php echo $next['title']; ?>" rel="next" style="background-image: url(<?php echo $nextThumbnailUrl; ?>);">
+                    <div class="prev_next_info">
+                        <small>下一篇</small>
+                        <p><?php echo $next['title']; ?></p>
+                    </div>
+                </a>
+            <?php else: ?>
+    
+            <?php endif; ?>
+            </div>
         </div>
-	</div>		
-    <?php $this->related(6)->to($relatedPosts); if ($relatedPosts->have()):?>
+    <?php $this->related(5)->to($relatedPosts); if ($relatedPosts->have()):?>
     <div class="post_related mb-3">    
         <h3 class="widget-title">相关文章</h3>
         <?php while ($relatedPosts->next()): ?> 
