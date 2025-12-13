@@ -14,7 +14,7 @@
     <link rel='icon' href='<?php $this->options->faviconUrl(); ?>' type='image/x-icon' />
     <!-- 使用url函数转换相关路径 -->
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap.min.css'); ?>">
-    <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/bifont/bootstrap-icons.css'); ?>">
+    <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap-icons.css'); ?>">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/fancybox.css'); ?>">
     <script type="text/javascript" src="<?php $this->options->themeUrl('assets/js/jquery.min.js'); ?>" id="jquery-min-js"></script>
     <!-- 通过自有函数输出HTML头部信息 -->
@@ -27,7 +27,7 @@
     return hour >= 6 && hour < 18;
   }
   // 后台设置
-  var themeMode = '<?php echo trim($this->options->darkMode()); ?>'; 
+  var themeMode = '<?php echo isset($this->options->darkMode) && $this->options->darkMode ? $this->options->darkMode : "light"; ?>' || 'light'; 
   // 统一使用 isDarkMode 作为存储键，值用 "1"/"0"
   function setDark() {
     localStorage.setItem("isDarkMode", "1");
@@ -121,7 +121,7 @@
   };
 })();
 </script>
-<link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>">
+<link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>?v=<?php echo time(); ?>">
 </head>
 <body class="home blog">
 <header class="header sticky-top">
