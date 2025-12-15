@@ -224,25 +224,26 @@ img {
 .dark #mobile_right_nav .menu-zk .sub-menu {
   background: #212121;
 }
-.dark .wznrys .wp-block-table table {
+.dark .wznrys table {
   color: #c9c9c9;
   border: 1px solid #3a3a3a;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
-.dark .wznrys .wp-block-table table tr {
+.dark .wznrys table tr {
   border-bottom: 1px solid #3a3a3a;
 }
-.dark .wznrys .wp-block-table table tr:nth-child(even) {
+.dark .wznrys table tr:nth-child(even) {
   background-color: rgba(255, 255, 255, 0.02);
 }
-.dark .wznrys .wp-block-table table tr:hover {
+.dark .wznrys table tr:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
-.dark .wznrys .wp-block-table table tr td,
-.dark .wznrys .wp-block-table table tr th {
+.dark .wznrys table tr td,
+.dark .wznrys table tr th {
   border-right: 1px solid #3a3a3a;
+  color: #d0c0c0f8;
 }
-.dark .wznrys .wp-block-table table tr th {
+.dark .wznrys table tr th {
   background: linear-gradient(to bottom, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.05));
   color: #fff;
   font-weight: 600;
@@ -1672,9 +1673,27 @@ img {
 }
 .wznrys h2 {
   font-size: 20px;
+  color: #041345;
+  border-bottom: 2px solid #6f707155;
+  padding-bottom: 0.5rem;
+}
+.wznrys h2::before {
+  content: '#';
+  margin-right: 8px;
+  font-size: 16px;
+  color: #db1b1ba6;
+}
+.dark .wznrys h2 {
+  color: #ffffffc7;
 }
 .wznrys h3 {
   font-size: 18px;
+  color: #4a5568;
+  border-left: 4px solid #4299e1; 
+  padding-left: 1rem;
+}
+.dark .wznrys h3 {
+  color: #bbb7b799;
 }
 .wznrys h4 {
   font-size: 16px;
@@ -1840,6 +1859,14 @@ img {
   position: relative;
   z-index: 0;
   color: #1d1d1f;
+  overflow-x: auto;
+}
+.wznrys pre code::-webkit-scrollbar {
+  height: 4px;
+}
+.wznrys pre code::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
 }
 .wznrys pre .code-lang-label {
   position: absolute;
@@ -1940,11 +1967,11 @@ img {
 .wznrys .wp-block-gallery figcaption {
   margin: 0 !important;
 }
-.wznrys .wp-block-table {
+.wznrys {
   overflow: hidden;
   margin-bottom: 30px;
 }
-.wznrys .wp-block-table table {
+.wznrys table {
   border: 1px solid #e5e7eb;
   font-size: 14px;
   margin-bottom: 20px;
@@ -1954,20 +1981,20 @@ img {
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
-.wznrys .wp-block-table table tr {
+.wznrys table tr {
   border-bottom: 1px solid #e5e7eb;
   transition: background-color 0.2s ease;
 }
-.wznrys .wp-block-table table tr:last-child {
+.wznrys table tr:last-child {
   border-bottom: none;
 }
-.wznrys .wp-block-table table tr:nth-child(even) {
+.wznrys table tr:nth-child(even) {
   background-color: #f9fafb;
 }
-.wznrys .wp-block-table table tr:hover {
+.wznrys table tr:hover {
   background-color: #f3f4f6;
 }
-.wznrys .wp-block-table table tr th {
+.wznrys table tr th {
   background: linear-gradient(to bottom, #f8f9fa, #f1f3f5);
   color: #1f2937;
   font-weight: 600;
@@ -1976,15 +2003,15 @@ img {
   border-right: 1px solid #e5e7eb;
   border-bottom: 2px solid #d1d5db;
 }
-.wznrys .wp-block-table table tr th:last-child {
+.wznrys table tr th:last-child {
   border-right: none;
 }
-.wznrys .wp-block-table table tr td {
+.wznrys table tr td {
   padding: 12px 20px;
   border-right: 1px solid #e5e7eb;
   color: #374151;
 }
-.wznrys .wp-block-table table tr td:last-child {
+.wznrys table tr td:last-child {
   border-right: none;
 }
 .wznrys table {
@@ -2323,4 +2350,7 @@ img {
 }
 .dark .posts-nav .current a {
   background: #4270f6;
+}
+.hidden {
+  display: none;
 }
