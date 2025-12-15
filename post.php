@@ -26,7 +26,7 @@
 			<?php //$this->content(); ?><?php echo CustomContentFilter::parseImage($this->content, $this); ?>
 		</article>
             <?php if ($this->modified > $this->created): ?>
-        <strong>最后更新于 <?php echo date('Y-m-d H:i:s', $this->modified); ?></strong>
+        <p>最后更新于 <?php echo date('Y-m-d H:i:s', $this->modified); ?></p>
             <?php endif; ?>			
 		<div class="post_loop_tag">
             <?php if ($this->tags): ?>
@@ -46,7 +46,7 @@
 		</div>
 		<div class="post_author_r">
 			<div class="post_author_icon">
-				<a href="#post_comment_anchor">
+				<a href="#comments" title="评论">
                     <i class="bi bi-chat-square-dots-fill"></i>
                     <?php $this->commentsNum('0', '1', '%d'); ?>
                 </a>

@@ -91,7 +91,7 @@
             <?php endif; ?>
         </div>
         <div class="post_info_footer">
-            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#respond"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
+            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#comments"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
             <span class=""><i class="bi bi-eye-fill"></i><?php get_post_view($this) ?></span>
             <span>
             <?php $likes = $this->fields->likes ? $this->fields->likes : 0; ?>

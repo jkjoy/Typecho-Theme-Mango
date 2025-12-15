@@ -272,4 +272,119 @@ document.addEventListener('DOMContentLoaded', function() {
     $(this).toggleClass("kai");
     $(this).nextAll('.sub-menu').slideToggle("slow");
   });
+
+  // 为代码块添加复制按钮和语言标签
+  $('.wznrys pre').each(function() {
+    var $pre = $(this);
+    var $code = $pre.find('code');
+
+    // 提取语言类型
+    var codeClass = $code.attr('class') || '';
+    var lang = '';
+
+    // 从 class 中提取语言类型
+    // 支持格式: lang-html, language-html, 或单独的语言名
+    if (codeClass) {
+      var classes = codeClass.split(/\s+/);
+      for (var i = 0; i < classes.length; i++) {
+        var cls = classes[i];
+        // 匹配 lang-xxx 格式
+        if (cls.indexOf('lang-') === 0) {
+          lang = cls.substring(5);
+          break;
+        }
+        // 匹配 language-xxx 格式
+        else if (cls.indexOf('language-') === 0) {
+          lang = cls.substring(9);
+          break;
+        }
+      }
+
+      // 如果没有找到 lang- 或 language- 前缀，尝试使用第一个非特殊类名
+      if (!lang) {
+        var nonLangClasses = ['hljs', 'line-numbers', 'match-braces', 'code', 'pre'];
+        for (var i = 0; i < classes.length; i++) {
+          if (classes[i] && nonLangClasses.indexOf(classes[i]) === -1) {
+            lang = classes[i];
+            break;
+          }
+        }
+      }
+    }
+
+    // 添加语言标签（使用真实 DOM 元素而不是伪元素）
+    if (lang && $pre.find('.code-lang-label').length === 0) {
+      var $langLabel = $('<span class="code-lang-label">' + lang.toUpperCase() + '</span>');
+      $pre.prepend($langLabel);
+    }
+
+    // 检查是否已经有复制按钮，避免重复添加
+    if ($pre.find('.copy-code-btn').length === 0) {
+      // 创建复制按钮
+      var $copyBtn = $('<button class="copy-code-btn">Copy</button>');
+
+      // 将按钮插入到 pre 标签中
+      $pre.prepend($copyBtn);
+
+      // 绑定点击事件
+      $copyBtn.on('click', function(e) {
+        e.preventDefault();
+
+        var $btn = $(this);
+        var codeText = $code.text();
+
+        // 使用现代 Clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(codeText).then(function() {
+            // 复制成功
+            $btn.addClass('copied').text('Copied!');
+
+            // 2秒后恢复按钮状态
+            setTimeout(function() {
+              $btn.removeClass('copied').text('Copy');
+            }, 2000);
+          }).catch(function(err) {
+            console.error('复制失败:', err);
+            $btn.text('Failed');
+            setTimeout(function() {
+              $btn.text('Copy');
+            }, 2000);
+          });
+        } else {
+          // 降级方案：使用传统的 document.execCommand
+          var textArea = document.createElement('textarea');
+          textArea.value = codeText;
+          textArea.style.position = 'fixed';
+          textArea.style.left = '-999999px';
+          textArea.style.top = '-999999px';
+          document.body.appendChild(textArea);
+          textArea.focus();
+          textArea.select();
+
+          try {
+            var successful = document.execCommand('copy');
+            if (successful) {
+              $btn.addClass('copied').text('Copied!');
+              setTimeout(function() {
+                $btn.removeClass('copied').text('Copy');
+              }, 2000);
+            } else {
+              $btn.text('Failed');
+              setTimeout(function() {
+                $btn.text('Copy');
+              }, 2000);
+            }
+          } catch (err) {
+            console.error('复制失败:', err);
+            $btn.text('Failed');
+            setTimeout(function() {
+              $btn.text('Copy');
+            }, 2000);
+          }
+
+          document.body.removeChild(textArea);
+        }
+      });
+    }
+  });
 });

@@ -6,7 +6,7 @@
  * 老孙博客移植
  * @package  Mango 
  * @author 老孙
- * @version 1.1.6
+ * @version 1.2.0
  * @link http://www.imsun.org
  */
 
@@ -71,7 +71,7 @@ $this->need('header.php');
             <?php endif; ?>
         </div>
         <div class="post_info_footer">
-            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#post_comment_anchor"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
+            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#comments"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
             <span class=""><i class="bi bi-eye-fill"></i><?php get_post_view($this) ?></span>
             <span>
             <?php $likes = $this->fields->likes ? $this->fields->likes : 0; ?>

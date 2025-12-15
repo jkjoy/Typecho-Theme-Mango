@@ -129,22 +129,16 @@
 		<div class="top">
 			<button class="mobile_an" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobile_right_nav" aria-controls="mobile_right_nav"><i class="bi bi-list"></i></button>
 			<div class="top_l">
-            	<h1 class="logo">
-                <?php if ($this->options->logoUrl): ?>
-                    <a href="<?php $this->options->siteUrl(); ?>" title="<?php $this->options->description() ?>"><img src="<?php $this->options->logoUrl() ?>"><b><?php $this->options->title() ?></b></a>
-                <?php else: ?>
-                    <a href="<?php $this->options->siteUrl(); ?>" title="<?php $this->options->description() ?>"><b><?php $this->options->title() ?></b></a>
-	        	<?php endif; ?>
-                </h1>
+        <h1 class="logo">
+          <a href="<?php $this->options->siteUrl(); ?>" title="<?php $this->options->description() ?>"><?php if ($this->options->logoUrl): ?><img src="<?php $this->options->logoUrl() ?>"><?php else: ?><?php endif; ?><b><?php $this->options->title() ?></b></a>
+        </h1>
         		<nav class="header-menu">
                     <ul id="menu-menu-1" class="header-menu-ul">
                     <li id="menu-item-13" class="menu-item menu-item-type-custom menu-item-object-custom current-menu-item current_page_item menu-item-home menu-item-13">
-                        <a<?php if ($this->is('index')): ?> class="current"<?php endif; ?> href="<?php $this->options->siteUrl(); ?>">
-                        <?php _e('<i class="bi bi-house-door-fill me-1"></i>首页'); ?>
-                        </a>
+                        <a<?php if ($this->is('index')): ?> class="current"<?php endif; ?> href="<?php $this->options->siteUrl(); ?>"><i class="bi bi-house-door-fill me-1"></i>首页</a>
                     </li>
                     <li class="menu-item-has-children">
-                        <a href="#" title="分类">
+                        <a title="分类">
                         <i class="bi bi-folder-fill me-1"></i>分类
                         </a>
                         <ul class="sub-menu" style="display: none;">
@@ -152,45 +146,7 @@
                         <?php while($categories->next()): ?>
                         <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
                             <a href="<?php $categories->permalink(); ?>">
-                            <?php 
-                            switch($categories->slug) {
-                                case 'images': echo '<i class="bi bi-images me-1"></i>';
-                            break;
-                                case 'share': echo '<i class="bi bi-share-fill me-1"></i>';
-                            break;
-                                case 'NULL': echo '<i class="bi bi-speaker-fill me-1"></i>';
-                            break;
-                                case 'memos': echo '<i class="bi bi-chat me-1"></i>';
-                            break;
-                                case 'codes': echo '<i class="bi bi-code me-1"></i>';
-                            break;
-                                case 'logs': echo '<i class="bi bi-person-fill me-1"></i>';
-                            break;
-                                case 'test': echo '<i class="bi bi-calendar-fill me-1"></i>';
-                            break;
-                                case 'tools': echo '<i class="bi bi-tools me-1"></i>';
-                            break;
-                                case 'music': echo '<i class="bi bi-music-note me-1"></i>';
-                            break;
-                                case 'links': echo '<i class="bi bi-link me-1"></i>';
-                            break;
-                                case 'video': echo '<i class="bi bi-camera-video me-1"></i>';
-                            break;
-                                case 'life': echo '<i class="bi bi-heart-fill me-1"></i>';
-                            break;
-                                case 'study': echo '<i class="bi bi-book-fill me-1"></i>';
-                            break;
-                                case 'news': echo '<i class="bi bi-newspaper me-1"></i>';
-                            break;
-                                case 'themes': echo '<i class="bi bi-palette me-1"></i>';
-                            break;
-                                case 'plugins': echo '<i class="bi bi-gear-fill me-1"></i>';
-                            break;
-                                case 'photo': echo '<i class="bi bi-images me-1"></i>';
-                            break;
-                                default: echo '<i class="bi bi-folder-fill me-1"></i>';
-                            } ?>
-                            <?php $categories->name(); ?>
+                            <?php echo categoryIcon($categories); ?>
                             </a>
                         </li>
                         <?php endwhile; ?>
