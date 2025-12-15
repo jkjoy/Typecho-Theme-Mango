@@ -7,7 +7,7 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 function themeAutoUpgradeNotice()
 {
     // 1. 定义当前主题版本 
-    $current_version = '1.2.0';
+    $current_version = '1.2.2';
 
     // 2. 定义 GitHub API 地址
     $api_url = 'https://api.github.com/repos/jkjoy/typecho-theme-mango/releases/latest';
@@ -84,7 +84,7 @@ function themeAutoUpgradeNotice()
 
 function themeConfig($form)
 {
-    echo '<style>.typecho-page-title h2 {font-weight: 600;color: #30ac9aff;}.typecho-page-title h2:before {content: "#";margin-right: 6px;color: #30ac9aff; font-size: 20px;font-weight: 600;}.themeConfig h3 {color: #30ac9aff;font-size: 20px;}.themeConfig h3:before {content: "[";margin-right: 5px;color: #cde51bff;font-size: 25px;}.themeConfig h3:after {content: "]";margin-left: 5px;color: #cde51bff;font-size: 25px;}.info{border: 1px solid #ffadad;padding: 20px;margin: -15px 10px 25px 0;background: #ffffff;border-radius: 5px;color: #cde51bff;}</style>';
+    echo '<style>.typecho-page-title h2 {font-weight: 600;color: #30ac9aff;}.typecho-page-title h2:before {content: "#";margin-right: 6px;color: #30ac9aff; font-size: 20px;font-weight: 600;}.themeConfig h3 {color: #30ac9aff;font-size: 20px;}.themeConfig h3:before {content: "[";margin-right: 5px;color: #cde51bff;font-size: 25px;}.themeConfig h3:after {content: "]";margin-left: 5px;color: #cde51bff;font-size: 25px;}.info{border: 1px solid #ffadad;padding: 20px;margin: -15px 10px 25px 0;background: #ffffff;border-radius: 5px;color: #e5ac1bff;}</style>';
     // 直接在主题设置页面调用更新检查
     themeAutoUpgradeNotice();
     echo '<span class="themeConfig"><h3>博客设置</h3></span>';
@@ -92,7 +92,7 @@ function themeConfig($form)
         'logoUrl',
         null,
         'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CgogIDwhLS0g6IqS5p6c5Li75L2TIC0tPgogIDxwYXRoIGQ9Ik0xNTAgMzAKICAgICAgIEM4MCAzMCwgNDAgOTAsIDQwIDE1MAogICAgICAgQzQwIDIyMCwgMTEwIDI2MCwgMTcwIDI1MAogICAgICAgQzIzMCAyNDAsIDI2MCAxOTAsIDI1MCAxNDAKICAgICAgIEMyNDAgOTAsIDIwMCAzMCwgMTUwIDMwIFoiIGZpbGw9IiNGRkM5MzMiIHN0cm9rZT0iI0U2QTgwMCIgc3Ryb2tlLXdpZHRoPSI0Ij48L3BhdGg+CgogIDwhLS0g6auY5YWJIC0tPgogIDxwYXRoIGQ9Ik0xMTAgNzAKICAgICAgIEM4MCAxMDAsIDcwIDE0MCwgODAgMTgwCiAgICAgICBDODUgMjAwLCAxMDUgMjE1LCAxMTUgMjIwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiPjwvcGF0aD4KCiAgPCEtLSDlj7blrZAgLS0+CiAgPHBhdGggZD0iTTE3MCAyMAogICAgICAgQzIwMCAtMTAsIDI1MCAtNSwgMjYwIDIwCiAgICAgICBDMjMwIDMwLCAyMDAgNDAsIDE3MCAyMCBaIiBmaWxsPSIjMkU4QjU3Ij48L3BhdGg+CgogIDwhLS0g5Y+26ISJIC0tPgogIDxwYXRoIGQ9Ik0xNzUgMjAgQzIxMCAxNSwgMjM1IDIwLCAyNTUgMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFGNkY0MyIgc3Ryb2tlLXdpZHRoPSIyIj48L3BhdGg+Cjwvc3ZnPgo=',
-        _t('站点 LOGO 地址'),
+        _t('<div class="info">全局设置</div>站点 LOGO 地址'),
         _t('在这里填入一个图片 URL 地址, 以在网站标题前加上一个 LOGO')
     );
     $form->addInput($logoUrl);
@@ -132,11 +132,11 @@ function themeConfig($form)
         'slidePosts',
         NULL,
         NULL,
-        _t('<span class="themeConfig"><h3>推荐位设置</h3></span>幻灯片文章'),
+        _t('<span class="themeConfig"><h3>推荐位设置</h3></span><div class="info">幻灯片展示</div>推荐位文章 CID'),
         _t('输入文章的 CID，多个请用英文逗号或空格分隔，如：1,2,3 或 1 2 3')
     );
     $form->addInput($slidePosts);   
-    $icpbeian = new Typecho_Widget_Helper_Form_Element_Text('icpbeian', NULL, NULL, _t('<span class="themeConfig"><h3>底部设置</h3></span>备案号码'), _t('不填写则不显示'));
+    $icpbeian = new Typecho_Widget_Helper_Form_Element_Text('icpbeian', NULL, NULL, _t('<span class="themeConfig"><h3>底部设置</h3></span><div class="info">网站底部信息设置</div>备案号码'), _t('不填写则不显示'));
     $form->addInput($icpbeian);
     $showlinks = new Typecho_Widget_Helper_Form_Element_Radio('showlinks', ['0' => _t('不显示'), '1' => _t('显示')], '0', _t('首页底部链接'), _t('是否展示友情链接,需要启用links插件'));
     $form->addInput($showlinks);
@@ -152,7 +152,7 @@ function themeConfig($form)
             'ShowOther'          => _t('显示其它杂项')
         ],
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],
-        _t('<span class="themeConfig"><h3>侧边栏设置</h3></span>侧边栏显示')
+        _t('<span class="themeConfig"><h3>侧边栏设置</h3></span><div class="info">侧边栏显示模块选择</div>侧边栏模块')
     );
     $form->addInput($sidebarBlock->multiMode());
 }
