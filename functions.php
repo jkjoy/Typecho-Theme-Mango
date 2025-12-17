@@ -4,10 +4,45 @@ if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 /**
  * 自动检查主题更新
  */
+function mango_normalize_version($version)
+{
+    $version = trim((string)$version);
+    $version = ltrim($version, "vV \t\n\r\0\x0B");
+
+    if (preg_match('/^([0-9]+(?:\\.[0-9]+){1,3})/', $version, $m)) {
+        return $m[1];
+    }
+
+    return $version;
+}
+
+function mango_get_theme_version_from_index()
+{
+    $indexFile = __DIR__ . '/index.php';
+    if (!is_file($indexFile)) {
+        return null;
+    }
+
+    $content = @file_get_contents($indexFile);
+    if ($content === false) {
+        return null;
+    }
+
+    if (preg_match('/@version\\s+([^\\s\\*]+)/i', $content, $m)) {
+        $version = mango_normalize_version($m[1]);
+        return $version !== '' ? $version : null;
+    }
+
+    return null;
+}
+
 function themeAutoUpgradeNotice()
 {
-    // 1. 定义当前主题版本 
-    $current_version = '1.2.2';
+    // 1. 从 index.php 注释读取当前主题版本（@version）
+    $current_version = mango_get_theme_version_from_index();
+    if (empty($current_version)) {
+        return;
+    }
 
     // 2. 定义 GitHub API 地址
     $api_url = 'https://api.github.com/repos/jkjoy/typecho-theme-mango/releases/latest';
@@ -29,7 +64,7 @@ function themeAutoUpgradeNotice()
     if (file_exists($cache_file) && (time() - filemtime($cache_file)) < $cache_time) {
         $cache_data = json_decode(file_get_contents($cache_file), true);
         if ($cache_data && isset($cache_data['tag_name'])) {
-            $latest_version = $cache_data['tag_name'];
+            $latest_version = mango_normalize_version($cache_data['tag_name']);
         }
     } else {
         // 缓存过期或不存在，重新请求 API
@@ -45,7 +80,7 @@ function themeAutoUpgradeNotice()
         if ($response) {
             $release_data = json_decode($response, true);
             if (isset($release_data['tag_name'])) {
-                $latest_version = $release_data['tag_name'];
+                $latest_version = mango_normalize_version($release_data['tag_name']);
                 // 更新缓存文件
                 $result = file_put_contents($cache_file, json_encode(['tag_name' => $latest_version, 'time' => time()]));
                 // 如果缓存写入失败，记录错误但不影响显示
@@ -60,13 +95,13 @@ function themeAutoUpgradeNotice()
             if (file_exists($cache_file)) {
                 $cache_data = json_decode(file_get_contents($cache_file), true);
                 if ($cache_data && isset($cache_data['tag_name'])) {
-                    $latest_version = $cache_data['tag_name'];
+                    $latest_version = mango_normalize_version($cache_data['tag_name']);
                 }
             }
         }
     }
     // 4. 如果获取到了最新版本，则进行比较
-    if ($latest_version && version_compare($current_version, $latest_version, '<')) {
+    if ($latest_version && version_compare(mango_normalize_version($current_version), mango_normalize_version($latest_version), '<')) {
         
         $notice_html = '
         <span class="themeConfig"><h3>主题更新</h3>
@@ -255,9 +290,92 @@ function get_post_view($archive) {
 
 /**
  * 处理文章点赞
-*/
+ */
 if (isset($_POST['action']) && $_POST['action'] == 'specs_zan') {
     handlePostLike();
+}
+
+function mango_is_json_pagination_request()
+{
+    return isset($_GET['mango_json']) && $_GET['mango_json'] === '1';
+}
+
+function mango_send_json($data)
+{
+    if (!headers_sent()) {
+        header('Content-Type: application/json; charset=UTF-8');
+        header('X-Content-Type-Options: nosniff');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+        header('Pragma: no-cache');
+    }
+    echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
+function mango_extract_first_href($html)
+{
+    if (preg_match('/href\\s*=\\s*(["\'])(.*?)\\1/i', (string)$html, $m)) {
+        return $m[2];
+    }
+    return null;
+}
+
+function mango_is_external_url($url)
+{
+    $url = (string)$url;
+    $siteUrl = (string)Helper::options()->siteUrl;
+
+    $siteHost = parse_url($siteUrl, PHP_URL_HOST);
+    $urlHost = parse_url($url, PHP_URL_HOST);
+
+    if (empty($urlHost) || empty($siteHost)) {
+        return false;
+    }
+
+    return strcasecmp($urlHost, $siteHost) !== 0;
+}
+
+function mango_local_path_from_url($url)
+{
+    $url = (string)$url;
+    $siteUrl = (string)Helper::options()->siteUrl;
+
+    $urlPath = parse_url($url, PHP_URL_PATH);
+    if (empty($urlPath)) {
+        return null;
+    }
+
+    $siteHost = parse_url($siteUrl, PHP_URL_HOST);
+    $urlHost = parse_url($url, PHP_URL_HOST);
+    if (!empty($urlHost) && !empty($siteHost) && strcasecmp($urlHost, $siteHost) !== 0) {
+        return null;
+    }
+
+    $siteBasePath = (string)parse_url($siteUrl, PHP_URL_PATH);
+    $siteBasePath = rtrim($siteBasePath, '/');
+    if ($siteBasePath !== '' && strncmp($urlPath, $siteBasePath, strlen($siteBasePath)) === 0) {
+        $urlPath = substr($urlPath, strlen($siteBasePath));
+    }
+
+    $relativePath = ltrim(rawurldecode($urlPath), '/');
+    if ($relativePath === '') {
+        return null;
+    }
+
+    return rtrim(__TYPECHO_ROOT_DIR__, '/\\') . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+}
+
+function mango_get_next_page_href($archiveWidget)
+{
+    $totalPages = ceil($archiveWidget->getTotal() / $archiveWidget->parameter->pageSize);
+    if ($archiveWidget->_currentPage >= $totalPages) {
+        return null;
+    }
+
+    ob_start();
+    $archiveWidget->pageLink('加载更多', 'next');
+    $nextLinkHtml = ob_get_clean();
+    return mango_extract_first_href($nextLinkHtml);
 }
 
 function handlePostLike() {
@@ -419,18 +537,54 @@ function get_thumb($imgUrl, $options) {
     $hash = md5($imgUrl);
     $thumbnail_path = $upload_dir . $hash . '.webp';
     $thumbnail_url = Helper::options()->themeUrl . '/thumbnails/' . $hash . '.webp';
+    $fail_marker_path = $upload_dir . $hash . '.fail';
     // 如果缩略图已存在，直接返回
     if (file_exists($thumbnail_path)) {
         return $thumbnail_url;
     }
+    // 失败缓存：避免对失效第三方链接反复阻塞请求
+    if (file_exists($fail_marker_path) && (time() - filemtime($fail_marker_path)) < 7 * 86400) {
+        return $default_thumbnail;
+    }
+    // JSON翻页时不做远程缩略图生成，优先快速返回（避免被第三方图片超时拖慢）
+    if (function_exists('mango_is_json_pagination_request') && mango_is_json_pagination_request()) {
+        return $imgUrl ?: $default_thumbnail;
+    }
+    // 非本站图片不生成缩略图，直接让浏览器加载原图（失败也不会阻塞后端）
+    if (function_exists('mango_is_external_url') && mango_is_external_url($imgUrl)) {
+        return $imgUrl ?: $default_thumbnail;
+    }
+
+    $scheme = strtolower((string)parse_url((string)$imgUrl, PHP_URL_SCHEME));
+    if ($scheme !== '' && $scheme !== 'http' && $scheme !== 'https') {
+        return $imgUrl ?: $default_thumbnail;
+    }
+
     // 获取原始图片
-    $img_data = @file_get_contents($imgUrl);
+    $img_data = false;
+    if (function_exists('mango_local_path_from_url')) {
+        $localPath = mango_local_path_from_url($imgUrl);
+        if ($localPath && is_file($localPath)) {
+            $img_data = @file_get_contents($localPath);
+        }
+    }
     if ($img_data === false) {
+        $ctx = stream_context_create([
+            'http' => [
+                'timeout' => 3,
+                'header' => "User-Agent: MangoThumb/1.0\r\nAccept: image/*\r\n",
+            ],
+        ]);
+        $img_data = @file_get_contents($imgUrl, false, $ctx);
+    }
+    if ($img_data === false) {
+        @touch($fail_marker_path);
         return $default_thumbnail; // 图片404或无法获取时，返回默认图片
     }
     // 创建图片资源
     $src = @imagecreatefromstring($img_data);
     if (!$src) {
+        @touch($fail_marker_path);
         return $default_thumbnail; // 图片格式无效或无法创建资源时，返回默认图片
     }
     try {
@@ -467,10 +621,14 @@ function get_thumb($imgUrl, $options) {
             $new_width, $new_height
         );
         // 保存缩略图
-        imagewebp($thumb, $thumbnail_path, 85);
+        if (!@imagewebp($thumb, $thumbnail_path, 85)) {
+            @touch($fail_marker_path);
+            return $default_thumbnail;
+        }
         return $thumbnail_url;
     } catch (Exception $e) {
         // 发生异常时返回默认图片
+        @touch($fail_marker_path);
         return $default_thumbnail;
     } finally {
         // 释放资源
@@ -872,4 +1030,25 @@ class AttachmentHelper {
         <?php
     }
 }
-?>
+
+/**
+ * Typecho后台写文章页面标签快速添加功能
+ * @author jkjoy
+ * @date 2025-12-10
+ */
+Typecho_Plugin::factory('admin/write-post.php')->bottom = array('tagshelper', 'tagslist');
+class tagshelper{
+    public static function tagslist(){   
+        ?>
+        <style>.tagshelper a{cursor: pointer; padding: 0px 6px; margin: 2px 0;display: inline-block;border-radius: 2px;text-decoration: none;}
+.tagshelper a:hover{background: #ccc;color: #fff;}</style>
+        <script> $(document).ready(function(){
+        $('#tags').after('<div style="margin-top: 35px;" class="tagshelper"><ul style="list-style: none;border: 1px solid #D9D9D6;padding: 6px 12px; max-height: 240px;overflow: auto;background-color: #FFF;border-radius: 2px;"><?php
+        $i=0;
+        Typecho_Widget::widget('Widget_Metas_Tag_Cloud', 'sort=count&desc=1&limit=200')->to($tags);
+            while ($tags->next()) {
+                echo "<a id=".$i." onclick=\"$(\'#tags\').tokenInput(\'add\', {id: \'".$tags->name."\', tags: \'".$tags->name."\'});\">".$tags->name."</a>";
+                    $i++;}?></ul></div>');});</script>
+        <?php
+    }
+}

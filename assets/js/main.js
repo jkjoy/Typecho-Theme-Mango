@@ -108,45 +108,75 @@
       }
   });
 });
+
+// 列表缩略图加载失败兜底（避免第三方图失效导致大片破图）
+function mangoBindPostThumbnailFallback($root) {
+  $root = $root || $(document);
+  $root.find('img.post-thumbnail').each(function () {
+    var img = this;
+    if (img.dataset && img.dataset.fallbackBound === '1') return;
+    if (img.dataset) img.dataset.fallbackBound = '1';
+
+    $(img).on('error', function () {
+      var fallback = img.getAttribute('data-fallback');
+      if (fallback && img.src !== fallback) {
+        img.src = fallback;
+      }
+    });
+  });
+}
+$(document).ready(function () {
+  mangoBindPostThumbnailFallback($(document));
+});
    
     // 加载更多文章
     $(document).on('click', '.post-read-more a', function(e){
         e.preventDefault();
         var $btn = $(this);
         var nextPage = $btn.attr('href');
+
+        function addQueryParam(url, key, value) {
+            if (!url) return url;
+            var parts = url.split('#');
+            var base = parts[0];
+            var hash = parts.length > 1 ? '#' + parts.slice(1).join('#') : '';
+
+            var re = new RegExp('([?&])' + key + '=([^&]*)', 'i');
+            if (re.test(base)) return url;
+
+            var sep = base.indexOf('?') === -1 ? '?' : '&';
+            return base + sep + encodeURIComponent(key) + '=' + encodeURIComponent(value) + hash;
+        }
         
         if($btn.hasClass('loading')) return false;
         
         $btn.addClass('loading').text('加载中...');
         
         $.ajax({
-            url: nextPage,
+            url: addQueryParam(nextPage, 'mango_json', '1'),
             type: 'GET',
-            dataType: 'html',
-            success: function(data){
-                // 创建一个临时的DOM元素来解析返回的HTML
-                var $html = $('<div></div>').html(data);
-                
-                // 找到新的文章
-                var $newPosts = $html.find('.post_loop');
-                
-                // 找到新的"加载更多"按钮
-                var $newBtn = $html.find('.post-read-more a');
-                
-                // 将新文章添加到页面
-                if ($newPosts.length > 0) {
-                    $('.post_box').append($newPosts);
-                    // 新文章淡入效果
-                    $newPosts.hide().fadeIn(500);
+            dataType: 'json',
+            success: function(resp){
+                if (!resp || resp.success !== true) {
+                    $btn.removeClass('loading').text('加载失败，点击重试');
+                    return;
                 }
-                
-                // 更新"加载更多"按钮或移除它
-                if($newBtn.length > 0){
-                    $btn.attr('href', $newBtn.attr('href'))
-                       .removeClass('loading')
-                       .text('加载更多');
+
+                var $newPosts = $(resp.postsHtml || '');
+                var $box = $btn.closest('.col-lg-8').find('.post_box').first();
+
+                if ($newPosts.length > 0 && $box.length > 0) {
+                    $box.append($newPosts);
+                    $newPosts.hide().fadeIn(500);
+                    mangoBindPostThumbnailFallback($newPosts);
+                }
+
+                if (resp.nextHref) {
+                    $btn.attr('href', resp.nextHref)
+                        .removeClass('loading')
+                        .text('加载更多');
                 } else {
-                    $('.post-read-more').remove();
+                    $btn.closest('.post-read-more').remove();
                 }
             },
             error: function(xhr, status, error){

@@ -11,7 +11,11 @@
             'tag'      => _t('标签 %s 下的文章'),
             'author'   => _t('%s 发布的文章')
         ], '', ' - '); ?><?php $this->options->title(); ?> | <?php $this->options->description(); ?></title>
+    <?php if ($this->options->faviconUrl): ?>
     <link rel='icon' href='<?php $this->options->faviconUrl(); ?>' type='image/x-icon' />
+    <?php else: ?>
+    <link rel='icon' href='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjMwMCIgdmlld0JveD0iMCAwIDMwMCAzMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CgogIDwhLS0g6IqS5p6c5Li75L2TIC0tPgogIDxwYXRoIGQ9Ik0xNTAgMzAKICAgICAgIEM4MCAzMCwgNDAgOTAsIDQwIDE1MAogICAgICAgQzQwIDIyMCwgMTEwIDI2MCwgMTcwIDI1MAogICAgICAgQzIzMCAyNDAsIDI2MCAxOTAsIDI1MCAxNDAKICAgICAgIEMyNDAgOTAsIDIwMCAzMCwgMTUwIDMwIFoiIGZpbGw9IiNGRkM5MzMiIHN0cm9rZT0iI0U2QTgwMCIgc3Ryb2tlLXdpZHRoPSI0Ij48L3BhdGg+CgogIDwhLS0g6auY5YWJIC0tPgogIDxwYXRoIGQ9Ik0xMTAgNzAKICAgICAgIEM4MCAxMDAsIDcwIDE0MCwgODAgMTgwCiAgICAgICBDODUgMjAwLCAxMDUgMjE1LCAxMTUgMjIwIiBmaWxsPSJub25lIiBzdHJva2U9InJnYmEoMjU1LDI1NSwyNTUsMC41KSIgc3Ryb2tlLXdpZHRoPSI2IiBzdHJva2UtbGluZWNhcD0icm91bmQiPjwvcGF0aD4KCiAgPCEtLSDlj7blrZAgLS0+CiAgPHBhdGggZD0iTTE3MCAyMAogICAgICAgQzIwMCAtMTAsIDI1MCAtNSwgMjYwIDIwCiAgICAgICBDMjMwIDMwLCAyMDAgNDAsIDE3MCAyMCBaIiBmaWxsPSIjMkU4QjU3Ij48L3BhdGg+CgogIDwhLS0g5Y+26ISJIC0tPgogIDxwYXRoIGQ9Ik0xNzUgMjAgQzIxMCAxNSwgMjM1IDIwLCAyNTUgMjIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFGNkY0MyIgc3Ryb2tlLXdpZHRoPSIyIj48L3BhdGg+Cjwvc3ZnPgo=' type='image/x-icon' />
+    <?php endif; ?>
     <!-- 使用url函数转换相关路径 -->
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap.min.css'); ?>">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap-icons.css'); ?>">
@@ -151,7 +155,7 @@
                         </li>
                         <?php endwhile; ?>
                         </ul>
-                        </li>
+                    </li>
                     <?php $this->widget('Widget_Contents_Page_List')->to($pages); ?>
                         <?php while($pages->next()): ?>
                         <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
