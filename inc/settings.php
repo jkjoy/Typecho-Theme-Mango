@@ -72,10 +72,24 @@ function themeConfig($form)
             'ShowOther'          => _t('显示其它杂项')
         ],
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],
-        _t('<span class="themeConfig"><h3>侧边栏设置</h3></span><div class="info">侧边栏显示模块选择</div>侧边栏模块')
+        _t('<span class="themeConfig"><h3>侧边栏设置</h3></span><div class="info">侧边栏显示模块设置</div>侧边栏模块')
     );
     $form->addInput($sidebarBlock->multiMode());
 
+    $recentarticle = new Typecho_Widget_Helper_Form_Element_Text('recentarticle', NULL, '3', _t('最新文章数量'), _t('默认数量3，侧边栏最新文章模块显示的文章数量'));
+    $recentarticle->input->setAttribute('class', 'w-10');
+    $form->addInput($recentarticle->addRule('isInteger', _t('请填写整数数字')));
+
+    $hotarticle = new Typecho_Widget_Helper_Form_Element_Text('hotarticle', NULL, '5', _t('热门文章数量'), _t('默认数量5，侧边栏热门文章模块显示的文章数量'));
+    $hotarticle->input->setAttribute('class', 'w-10');
+    $form->addInput($hotarticle->addRule('isInteger', _t('请填写整数数字')));
+
+    $hottags = new Typecho_Widget_Helper_Form_Element_Text('hottags', NULL, '20', _t('热门标签数量'), _t('默认数量20，侧边栏热门标签模块显示的标签数量'));
+    $hottags->input->setAttribute('class', 'w-10');
+    $form->addInput($hottags->addRule('isInteger', _t('请填写整数数字')));
+    $friend = new Typecho_Widget_Helper_Form_Element_Textarea('friend', NULL, NULL, _t('<span class="themeConfig"><h3>评论相关设置</h3></span><div class="info">好友认证</div>好友邮箱'), _t('一行一个邮箱地址,用于评论区好友等级认证'));
+    $form->addInput($friend);
+    // 主题备份功能钩子
     if (function_exists('mango_render_theme_backup_section')) {
         mango_render_theme_backup_section();
     }

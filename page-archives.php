@@ -35,18 +35,8 @@ $this->need('header.php'); ?>
 <div class="col-lg-8">
     <div class="post_container_title">
         <h1><?php $this->title(); ?></h1>
-        <p class="mango-page-meta mango-archives-meta">
-            <span><i class="bi bi-journal-text me-1"></i><?php echo (int)$totalPosts; ?> 篇</span>
-            <?php if ($totalPosts): ?>
-                <span><i class="bi bi-calendar3 me-1"></i><?php echo date('Y-m-d', $oldestCreated); ?> - <?php echo date('Y-m-d', $latestCreated); ?></span>
-            <?php endif; ?>
-        </p>
     </div>
     <div class="post_container">
-        <article class="wznrys">
-            <?php $this->content(); ?>
-        </article>
-
         <div class="mango-archives">
             <?php if (empty($groupedByYear)): ?>
                 <div class="mango-empty">暂无文章可归档</div>

@@ -79,12 +79,18 @@ $gravatarUrl2x = $gravatarPrefix . md5(strtolower(trim($email))) . '?s=160&d=mm&
 </div>
 <?php
 $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->sidebarBlock : array();
+$recentPostsCount = isset($this->options->recentarticle) ? intval($this->options->recentarticle) : 0;
+if ($recentPostsCount <= 0) $recentPostsCount = 3;
+$hotPostsCount = isset($this->options->hotarticle) ? intval($this->options->hotarticle) : 0;
+if ($hotPostsCount <= 0) $hotPostsCount = 5;
+$hotTagsCount = isset($this->options->hottags) ? intval($this->options->hottags) : 0;
+if ($hotTagsCount <= 0) $hotTagsCount = 20;
 ?>
 <?php if (in_array('ShowRecentPosts', $sidebarBlock)): ?>
 <ul class="author_post">
 <?php
     // 获取指定用户的最近文章
-    $recentPosts = Typecho_Widget::widget('Widget_Contents_Post_Recent', 'pageSize=3&uid=' . $userId);
+    $recentPosts = Typecho_Widget::widget('Widget_Contents_Post_Recent', 'pageSize=' . $recentPostsCount . '&uid=' . $userId);
     while ($recentPosts->next()):
         $result = get_post_thumbnail($recentPosts);
         $thumbnail = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail'];
@@ -116,7 +122,7 @@ $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->si
             ->from('table.contents')
             ->where('type = ? AND status = ?', 'post', 'publish')
             ->order('commentsNum', Typecho_Db::SORT_DESC)
-            ->limit(5)
+            ->limit($hotPostsCount)
         );
     } catch (Exception $e) {
         $hotPosts = array();
@@ -197,7 +203,7 @@ $sidebarBlock = !empty($this->options->sidebarBlock) ? (array)$this->options->si
 <?php if (in_array('ShowTags', $sidebarBlock)): ?>
     <?php
     // 获取热门标签
-    $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=20');
+    $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=' . $hotTagsCount);
     if ($tags->have()):
     ?>
         <aside id="hot_tags-2" class="widget widget_hot_tags">
