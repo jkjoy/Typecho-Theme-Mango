@@ -183,7 +183,7 @@
               }
 
               var num = parseInt(data, 10);
-              if (!isNaN(num) && num >= 0) {
+              if (!isNaN(num) && num > 0) {
                   // 更新同一文章的所有点赞数
                   $('.specsZan[data-id="' + cid + '"] .count').text(num);
                   $('.specsZan[data-id="' + cid + '"]').addClass('done');

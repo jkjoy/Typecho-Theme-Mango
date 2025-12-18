@@ -14,11 +14,10 @@
     <div class="container">
     	<div class="copyright">&copy; <?php echo date('Y'); ?> 
         <?php $this->options->title(); ?></a>.
-        Powered by <a href="https://typecho.org" rel="external nofollow" target="_blank" style="color: #fff;">Typecho</a>.
+        <a href="https://typecho.org" rel="external nofollow" target="_blank" style="color: #fff;">Typecho</a>强力驱动.
         <p class="hidden"> Theme by <a href="https://www.imsun.org" target="_blank" style="color: #fff;">老孙</a> & <a href="https://huitheme.com" rel="external nofollow" target="_blank">HUiTHEME</a>绘主题. </p>  
         <?php if($this->options->icpbeian): ?>
-        <p><a class="beian" href="https://beian.miit.gov.cn/" rel="external nofollow" target="_blank" title="备案号"><i class="bi bi-shield-check me-1"></i><?php $this->options->icpbeian() ?></a>
-        </p>
+        <a class="beian" href="https://beian.miit.gov.cn/" rel="external nofollow" target="_blank" title="备案号"><i class="bi bi-shield-check me-1"></i><?php $this->options->icpbeian() ?></a>
         <?php endif; ?>
         </div>
 	</div>

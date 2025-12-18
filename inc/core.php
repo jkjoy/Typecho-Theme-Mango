@@ -120,7 +120,7 @@ function get_thumb($imgUrl, $options) {
     // 生成唯一文件名
     $hash = md5($imgUrl);
     $thumbnail_path = $upload_dir . $hash . '.webp';
-    $thumbnail_url = Helper::options()->siteUrl . '/usr/cache/thumbnails/' . $hash . '.webp';
+    $thumbnail_url = Helper::options()->siteUrl . 'usr/cache/thumbnails/' . $hash . '.webp';
     $fail_marker_path = $upload_dir . $hash . '.fail';
     // 如果缩略图已存在，直接返回
     if (file_exists($thumbnail_path)) {

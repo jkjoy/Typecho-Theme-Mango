@@ -68,37 +68,16 @@ function mango_ensure_contents_likes_column()
     $prefix = $db->getPrefix();
 
     try {
-        $db->fetchRow($db->select('likes')->from('table.contents')->limit(1));
-    } catch (Exception $e) {
-        $db->query('ALTER TABLE `' . $prefix . 'contents` ADD `likes` INT(10) DEFAULT 0;');
-    }
-}
-
-function mango_migrate_likes_from_fields_if_needed($cid, $currentLikes)
-{
-    $currentLikes = (int)$currentLikes;
-    if ($currentLikes > 0) {
-        return $currentLikes;
-    }
-
-    try {
-        $db = Typecho_Db::get();
-        $row = $db->fetchRow($db->select('str_value')
-            ->from('table.fields')
-            ->where('cid = ?', $cid)
-            ->where('name = ?', 'likes')
-            ->limit(1));
-        if ($row && isset($row['str_value'])) {
-            $likes = (int)$row['str_value'];
-            if ($likes > 0) {
-                $db->query($db->update('table.contents')->rows(array('likes' => $likes))->where('cid = ?', $cid));
-                return $likes;
-            }
+        $row = $db->fetchRow($db->select()->from('table.contents')->limit(1));
+        if (is_array($row) && array_key_exists('likes', $row)) {
+            return true;
         }
+        $db->query('ALTER TABLE `' . $prefix . 'contents` ADD `likes` INT(10) DEFAULT 0;');
+        return true;
     } catch (Exception $e) {
+        error_log('Error in mango_ensure_contents_likes_column: ' . $e->getMessage());
+        return false;
     }
-
-    return $currentLikes;
 }
 
 function get_post_like($archive)
@@ -107,11 +86,13 @@ function get_post_like($archive)
         $cid = $archive->cid;
         $db = Typecho_Db::get();
 
-        mango_ensure_contents_likes_column();
+        if (!mango_ensure_contents_likes_column()) {
+            echo 0;
+            return;
+        }
 
         $row = $db->fetchRow($db->select('likes')->from('table.contents')->where('cid = ?', $cid));
         $likes = $row && isset($row['likes']) ? (int)$row['likes'] : 0;
-        $likes = mango_migrate_likes_from_fields_if_needed($cid, $likes);
 
         echo $likes;
     } catch (Exception $e) {
@@ -128,11 +109,12 @@ function mango_increment_post_like($cid)
     }
 
     $db = Typecho_Db::get();
-    mango_ensure_contents_likes_column();
+    if (!mango_ensure_contents_likes_column()) {
+        return null;
+    }
 
     $row = $db->fetchRow($db->select('likes')->from('table.contents')->where('cid = ?', $cid));
     $likes = $row && isset($row['likes']) ? (int)$row['likes'] : 0;
-    $likes = mango_migrate_likes_from_fields_if_needed($cid, $likes);
     $likes = $likes + 1;
 
     $db->query($db->update('table.contents')->rows(array('likes' => $likes))->where('cid = ?', $cid));
