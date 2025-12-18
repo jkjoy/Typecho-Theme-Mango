@@ -212,6 +212,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // 局部化评论回复表单
 document.addEventListener('DOMContentLoaded', function() {
     var respond = document.getElementById('<?php $this->respondId(); ?>');
+    if (!respond) return;
     var cancelReply = respond.querySelector('#cancel-comment-reply-link') || respond.querySelector('.cancel-comment-reply');
     var temp = document.createElement('div');
     temp.id = 'respond-temp';
