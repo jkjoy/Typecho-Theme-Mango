@@ -368,11 +368,11 @@ function mango_render_theme_backup_section()
     }
 
     $security = Security::alloc();
-    $exportUrl = $security->getAdminUrl('options-theme.php?mango_backup=export');
+    //$exportUrl = $security->getAdminUrl('options-theme.php?mango_backup=export');
     $importUrl = $security->getAdminUrl('options-theme.php?mango_backup=import');
     $saveDbUrl = $security->getAdminUrl('options-theme.php?mango_backup=save_db');
     $json = mango_export_theme_settings_json() ?: '{}';
-    $safeJson = htmlspecialchars($json, ENT_QUOTES, 'UTF-8');
+    //$safeJson = htmlspecialchars($json, ENT_QUOTES, 'UTF-8');
     $backups = mango_list_db_backups(20);
 
     echo '<span class="themeConfig"><h3>备份与恢复</h3></span>';
@@ -383,7 +383,7 @@ function mango_render_theme_backup_section()
 
     echo '<p style="margin: 18px 0 10px 0;font-weight:600;">备份列表（最近 20 条）</p>';
     if (empty($backups)) {
-        echo '<div class="info">暂无备份，点击“保存主题配置”创建一份。</div>';
+        echo '<div>暂无备份，点击“保存主题配置”创建一份。</div>';
     } else {
         echo '<div style="border:1px solid #d9d9d6;border-radius:4px;overflow:hidden;">';
         echo '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
@@ -414,8 +414,31 @@ function mango_render_theme_backup_section()
     echo '<style>
         .btn{display:inline-block;padding:6px 10px;border-radius:4px;border:1px solid #d9d9d6;background:#fff;cursor:pointer;font-size:12px}
         .btn.primary{background:#467B96;color:#fff;border-color:#467B96}
+        .btn.danger{background:#e55353;color:#fff;border-color:#e55353}
         .btn:disabled{opacity:.6;cursor:not-allowed}
+        .mango-modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:99999}
+        .mango-modal{width:min(520px,calc(100vw - 32px));background:#fff;border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.2);overflow:hidden}
+        .mango-modal-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #eee}
+        .mango-modal-title{font-weight:700;color:#333}
+        .mango-modal-close{border:0;background:transparent;font-size:18px;line-height:1;cursor:pointer;color:#999;padding:4px 6px}
+        .mango-modal-close:hover{color:#333}
+        .mango-modal-body{padding:14px;color:#666;font-size:13px;line-height:1.6;word-break:break-word}
+        .mango-modal-actions{display:flex;gap:10px;justify-content:flex-end;padding:12px 14px;border-top:1px solid #eee}
     </style>';
+
+    echo '<div id="mango-confirm-backdrop" class="mango-modal-backdrop" style="display:none" aria-hidden="true">
+        <div class="mango-modal" role="dialog" aria-modal="true" aria-labelledby="mango-confirm-title">
+            <div class="mango-modal-head">
+                <div id="mango-confirm-title" class="mango-modal-title">请确认</div>
+                <button type="button" class="mango-modal-close" id="mango-confirm-close" aria-label="Close">×</button>
+            </div>
+            <div class="mango-modal-body" id="mango-confirm-message"></div>
+            <div class="mango-modal-actions">
+                <button type="button" class="btn" id="mango-confirm-cancel">取消</button>
+                <button type="button" class="btn primary" id="mango-confirm-ok">确认</button>
+            </div>
+        </div>
+    </div>';
 
     echo '<script>
     (function(){
@@ -426,6 +449,72 @@ function mango_render_theme_backup_section()
         var importEl = document.getElementById("mango-backup-import");
         var importUrl = ' . json_encode($importUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';
         var saveDbUrl = ' . json_encode($saveDbUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . ';
+
+        function mangoConfirmModal(opts) {
+            opts = opts || {};
+            if (!window.Promise) return window.confirm(opts.message || "确认操作？");
+
+            var backdrop = document.getElementById("mango-confirm-backdrop");
+            var titleEl = document.getElementById("mango-confirm-title");
+            var msgEl = document.getElementById("mango-confirm-message");
+            var okBtn = document.getElementById("mango-confirm-ok");
+            var cancelBtn = document.getElementById("mango-confirm-cancel");
+            var closeBtn = document.getElementById("mango-confirm-close");
+            if (!backdrop || !titleEl || !msgEl || !okBtn || !cancelBtn || !closeBtn) {
+                return Promise.resolve(window.confirm(opts.message || "确认操作？"));
+            }
+
+            var lastActive = document.activeElement;
+            titleEl.textContent = opts.title || "请确认";
+            msgEl.textContent = opts.message || "确认操作？";
+
+            okBtn.textContent = opts.okText || "确认";
+            cancelBtn.textContent = opts.cancelText || "取消";
+
+            okBtn.classList.remove("primary", "danger");
+            okBtn.classList.add(opts.danger ? "danger" : "primary");
+
+            function cleanup(result) {
+                backdrop.style.display = "none";
+                backdrop.setAttribute("aria-hidden", "true");
+                backdrop.removeEventListener("click", onBackdropClick);
+                okBtn.removeEventListener("click", onOk);
+                cancelBtn.removeEventListener("click", onCancel);
+                closeBtn.removeEventListener("click", onCancel);
+                document.removeEventListener("keydown", onKeydown, true);
+                if (lastActive && typeof lastActive.focus === "function") lastActive.focus();
+                resolve(result);
+            }
+
+            function onBackdropClick(e) {
+                if (e.target === backdrop) cleanup(false);
+            }
+            function onOk() { cleanup(true); }
+            function onCancel() { cleanup(false); }
+            function onKeydown(e) {
+                if (e.key === "Escape") {
+                    e.preventDefault();
+                    cleanup(false);
+                }
+                if (e.key === "Enter") {
+                    if (document.activeElement === cancelBtn) return;
+                    e.preventDefault();
+                    cleanup(true);
+                }
+            }
+
+            var resolve;
+            var p = new Promise(function(r){ resolve = r; });
+            backdrop.style.display = "flex";
+            backdrop.setAttribute("aria-hidden", "false");
+            backdrop.addEventListener("click", onBackdropClick);
+            okBtn.addEventListener("click", onOk);
+            cancelBtn.addEventListener("click", onCancel);
+            closeBtn.addEventListener("click", onCancel);
+            document.addEventListener("keydown", onKeydown, true);
+            setTimeout(function(){ okBtn.focus(); }, 0);
+            return p;
+        }
 
         async function mangoPost(url, formData) {
             var resp = await fetch(url, { method: "POST", body: formData || new FormData(), credentials: "same-origin" });
@@ -438,7 +527,8 @@ function mango_render_theme_backup_section()
 
         if (saveDbBtn) {
             saveDbBtn.addEventListener("click", async function(){
-                if (!confirm("确认将当前主题设置保存到服务器备份？")) return;
+                var ok = await mangoConfirmModal({ title: "保存备份", message: "确认将当前主题设置保存到服务器备份？", okText: "确认保存" });
+                if (!ok) return;
                 saveDbBtn.disabled = true;
                 saveDbBtn.textContent = "保存中...";
                 try {
@@ -447,7 +537,7 @@ function mango_render_theme_backup_section()
                     alert("保存失败，请检查网络后重试");
                 } finally {
                     saveDbBtn.disabled = false;
-                    saveDbBtn.textContent = "保存到服务器";
+                    saveDbBtn.textContent = "保存主题配置";
                 }
             });
         }
@@ -456,7 +546,8 @@ function mango_render_theme_backup_section()
             btn.addEventListener("click", async function(){
                 var url = btn.getAttribute("data-url");
                 if (!url) return;
-                if (!confirm("确认从该服务器备份恢复？将覆盖当前主题设置。")) return;
+                var ok = await mangoConfirmModal({ title: "恢复备份", message: "确认从该服务器备份恢复？将覆盖当前主题设置。", okText: "确认恢复" });
+                if (!ok) return;
                 btn.disabled = true;
                 btn.textContent = "恢复中...";
                 try {
@@ -474,7 +565,8 @@ function mango_render_theme_backup_section()
             btn.addEventListener("click", async function(){
                 var url = btn.getAttribute("data-url");
                 if (!url) return;
-                if (!confirm("确认删除该服务器备份？此操作不可撤销。")) return;
+                var ok = await mangoConfirmModal({ title: "删除备份", message: "确认删除该服务器备份？此操作不可撤销。", okText: "确认删除", danger: true });
+                if (!ok) return;
                 btn.disabled = true;
                 btn.textContent = "删除中...";
                 try {
@@ -492,7 +584,8 @@ function mango_render_theme_backup_section()
             restoreBtn.addEventListener("click", async function(){
                 var raw = (importEl.value || "").trim();
                 if (!raw) { alert("请粘贴备份 JSON"); return; }
-                if (!confirm("确认恢复？将覆盖当前主题设置。")) return;
+                var ok = await mangoConfirmModal({ title: "恢复备份", message: "确认恢复？将覆盖当前主题设置。", okText: "确认恢复" });
+                if (!ok) return;
 
                 restoreBtn.disabled = true;
                 restoreBtn.textContent = "恢复中...";

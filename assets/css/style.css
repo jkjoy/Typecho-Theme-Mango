@@ -2365,9 +2365,226 @@ img {
 .hidden {
   display: none;
 }
+.mango-page-meta {
+  margin: 8px 0 0;
+  color: #adadad;
+  font-size: 13px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.mango-archives {
+  margin-top: 20px;
+}
+.mango-archive-year {
+  margin-bottom: 20px;
+}
+.mango-archive-year-title {
+  font-size: 16px;
+  margin: 0 0 10px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.mango-archive-year-title small {
+  color: #adadad;
+  font-weight: 400;
+  font-size: 12px;
+}
+.mango-archive-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-radius: 6px;
+  background: #fff;
+}
+.mango-archive-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-top: 1px solid #f0f0f0;
+}
+.mango-archive-item:first-child {
+  border-top: none;
+}
+.mango-archive-date {
+  color: #999;
+  font-variant-numeric: tabular-nums;
+  width: 44px;
+  flex: 0 0 44px;
+}
+.mango-archive-link {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #2c2c2c;
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mango-archive-link:hover {
+  color: #4270f6;
+}
+.mango-archive-count {
+  color: #adadad;
+  font-size: 12px;
+  flex: 0 0 auto;
+}
+.mango-links {
+  margin-top: 20px;
+}
+.mango-links-group {
+  margin-top: 18px;
+}
+.mango-links-group:first-child {
+  margin-top: 0;
+}
+.mango-links-title {
+  font-size: 15px;
+  margin: 0 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+}
+.mango-links-title small {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(241, 241, 244, 0.1);
+  color: #4270f6;
+}
+.mango-links-title i {
+  color: #4270f6;
+}
+.mango-link-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+  text-align: center;
+  padding: 16px 14px;
+  background: #fff;
+  border-radius: 6px;
+  height: 100%;
+  position: relative;
+}
+.mango-link-avatar img {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.mango-link-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+}
+.mango-link-name-link {
+  display: inline-block;
+  color: #2c2c2c;
+  font-size: 14px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  text-decoration: none;
+}
+.mango-link-name-link:hover {
+  color: #4270f6;
+  text-decoration: underline;
+}
+.mango-link-name-link[aria-disabled="true"] {
+  pointer-events: none;
+  opacity: 0.6;
+  text-decoration: none;
+}
+.mango-link-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 1px);
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+  visibility: hidden;
+  background: rgba(239, 243, 238, 0.86);
+  color: #f0730c;
+  font-size: 12px;
+  line-height: 1.45;
+  padding: 8px 14px;
+  border-radius: 8px;
+  width: min(320px, calc(100% + 40px));
+  max-width: 320px;
+  text-align: left;
+  z-index: 1;
+  word-break: break-word;
+}
+.mango-link-tooltip:after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: rgba(208, 230, 122, 0.86);
+}
+.mango-link-card:hover .mango-link-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+.mango-empty {
+  background: #fff;
+  border-radius: 6px;
+  padding: 14px;
+  color: #999;
+  font-size: 13px;
+  margin-top: 15px;
+}
+.dark .mango-archive-list,
+.dark .mango-link-card,
+.dark .mango-empty {
+  background: #2a2a2b;
+}
+.dark .mango-archive-item {
+  border-top-color: #3a3a3a;
+}
+.dark .mango-archive-link,
+.dark .mango-link-name-link {
+  color: #f0f0f0;
+}
+.dark .mango-link-name-link:hover {
+  color: #8fb0ff;
+}
+.dark .mango-archive-count,
+.dark .mango-page-meta {
+  color: #b2b2b2;
+}
+.dark .mango-link-tooltip {
+  background: rgba(20, 20, 20, 0.92);
+  color: #f0f0f0;
+}
+.dark .mango-link-tooltip:after {
+  border-top-color: rgba(20, 20, 20, 0.92);
+}
+.dark .mango-links-title {
+  background: #2a2a2b;
+  border-color: #3a3a3a;
+}
+.dark .mango-links-title small {
+  background: rgba(66, 112, 246, 0.18);
+  color: #8fb0ff;
+}
 .dark .posts-nav .current a {
   background: #4270f6;
-}
-.hidden {
-  display: none;
 }

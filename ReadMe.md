@@ -62,6 +62,12 @@
 | gbook | <i class="bi bi-cloud-arrow-up-fill me-1"></i>|
 | tools | <i class="bi bi-tools me-1"></i>|
 
+## 独立页面模板
+
+- 文章归档：新建独立页面，`slug` 设为 `archives`（自动使用 `page-archives.php`）
+- 友情链接：新建独立页面，`slug` 设为 `links`（自动使用 `page-links.php`，需启用 `Links` 插件）
+- 若你在友情链接页面内容中手动使用 `<links ...>...</links>` 标签输出友链，模板会自动检测并跳过二次渲染，避免重复显示
+
 
 
 | 分类slug | icon |
