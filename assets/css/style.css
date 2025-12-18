@@ -1664,45 +1664,56 @@ img {
 .wznrys h4,
 .wznrys h5,
 .wznrys h6 {
-  margin-bottom: 25px;
-  margin-top: 0px;
-  line-height: 30px;
+  margin: 28px 0 14px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: #111827;
+  letter-spacing: -0.01em;
+  scroll-margin-top: 90px;
+}
+.wznrys h1:first-child,
+.wznrys h2:first-child,
+.wznrys h3:first-child,
+.wznrys h4:first-child,
+.wznrys h5:first-child,
+.wznrys h6:first-child {
+  margin-top: 0;
 }
 .wznrys h1 {
-  font-size: 22px;
+  font-size: 24px;
 }
 .wznrys h2 {
   font-size: 20px;
-  color: #041345;
-  border-bottom: 2px solid #6f707155;
-  padding-bottom: 0.5rem;
-}
-.wznrys h2::before {
-  content: '#';
-  margin-right: 8px;
-  font-size: 16px;
-  color: #db1b1ba6;
-}
-.dark .wznrys h2 {
-  color: #ffffffc7;
+  padding-left: 12px;
+  border-left: 3px solid rgba(66, 112, 245, 0.75);
 }
 .wznrys h3 {
   font-size: 18px;
-  color: #4a5568;
-  border-left: 4px solid #4299e1; 
-  padding-left: 1rem;
-}
-.dark .wznrys h3 {
-  color: #bbb7b799;
+  padding-left: 12px;
+  border-left: 3px solid rgba(66, 112, 245, 0.35);
 }
 .wznrys h4 {
   font-size: 16px;
 }
 .wznrys h5 {
-  font-size: 14px;
+  font-size: 15px;
+  color: #374151;
 }
 .wznrys h6 {
   font-size: 14px;
+  color: #4b5563;
+}
+.dark .wznrys h1,
+.dark .wznrys h2,
+.dark .wznrys h3,
+.dark .wznrys h4 {
+  color: rgba(255, 255, 255, 0.88);
+}
+.dark .wznrys h5 {
+  color: rgba(255, 255, 255, 0.78);
+}
+.dark .wznrys h6 {
+  color: rgba(255, 255, 255, 0.7);
 }
 .wznrys ol,
 .wznrys ul {
@@ -1725,25 +1736,31 @@ img {
   height: auto;
 }
 .wznrys blockquote {
-  margin: 5px 0px 30px 0px;
+  margin: 18px 0 28px;
   position: relative;
   border-radius: 3px;
   font-size: inherit;
-  padding: 10px 25px 0px 25px;
+  padding: 18px 24px;
   border-left: 4px solid #e3e3e3;
   background-color: #f9f9f9;
 }
 .wznrys blockquote p {
-  padding: 0px 0px 5px 0px;
+  padding: 0;
+  margin: 0 0 14px;
   font-weight: bold;
   font-size: 16px;
+  line-height: 2.1;
   font-style: inherit;
 }
+.wznrys blockquote p:last-child {
+  margin-bottom: 0;
+}
 .wznrys blockquote cite {
-  padding-bottom: 20px;
+  padding-bottom: 0;
+  margin-top: 10px;
   display: flex;
   font-size: 14px;
-  line-height: 2;
+  line-height: 2.1;
   font-style: inherit;
 }
 .dark .wznrys blockquote {

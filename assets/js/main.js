@@ -40,21 +40,113 @@
   }
   scrollToTopBtn.addEventListener("click", scrollToTop)
   document.addEventListener("scroll", handleScroll)
-  
-  // 点赞功能
-  $(document).ready(function(){
-  // 检查 Cookie 函数
-  function checkLikeCookie(cid) {
-      return document.cookie.indexOf('post_like_' + cid) !== -1;
-  }
-  
-  // 设置 Cookie 函数
-  function setLikeCookie(cid) {
-      const expires = new Date();
-      expires.setHours(23, 59, 59, 999);
-      document.cookie = `post_like_${cid}=1; expires=${expires.toUTCString()}; path=/`;
+
+  // 轻量提示条（无需 Bootstrap JS）
+  function mangoToast(message, type) {
+    type = type || 'info';
+    if (!message) return;
+
+    if (!document.getElementById('mango-toast-style')) {
+      var style = document.createElement('style');
+      style.id = 'mango-toast-style';
+      style.textContent =
+        '.mango-toast-wrap{position:fixed;left:0;right:0;bottom:18px;z-index:99999;display:flex;justify-content:center;pointer-events:none;padding:0 12px}' +
+        '.mango-toast{pointer-events:auto;max-width:520px;width:max-content;min-width:160px;padding:10px 14px;border-radius:12px;' +
+        'border:1px solid rgba(0,0,0,.10);background:#fff;color:#111827;box-shadow:0 10px 28px rgba(17,24,39,.12);' +
+        'font-size:14px;line-height:1.6;opacity:0;transform:translateY(6px);transition:opacity .18s ease,transform .18s ease}' +
+        '.mango-toast.show{opacity:1;transform:translateY(0)}' +
+        '.mango-toast.success{border-color:rgba(16,185,129,.25)}' +
+        '.mango-toast.warning{border-color:rgba(245,158,11,.25)}' +
+        '.mango-toast.error{border-color:rgba(239,68,68,.25)}' +
+        '.dark .mango-toast{background:#111827;color:rgba(255,255,255,.9);border-color:rgba(255,255,255,.12);box-shadow:none}';
+      document.head.appendChild(style);
+    }
+
+    var wrap = document.querySelector('.mango-toast-wrap');
+    if (!wrap) {
+      wrap = document.createElement('div');
+      wrap.className = 'mango-toast-wrap';
+      document.body.appendChild(wrap);
+    }
+
+    var toast = document.createElement('div');
+    toast.className = 'mango-toast ' + type;
+    toast.textContent = message;
+    wrap.appendChild(toast);
+
+    requestAnimationFrame(function () {
+      toast.classList.add('show');
+    });
+
+    setTimeout(function () {
+      toast.classList.remove('show');
+      setTimeout(function () {
+        if (toast && toast.parentNode) toast.parentNode.removeChild(toast);
+      }, 220);
+    }, 2200);
   }
 
+  function mangoGetCookie(name) {
+    var cookies = (document.cookie || '').split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var part = cookies[i].trim();
+      if (!part) continue;
+      if (part.indexOf(name + '=') === 0) {
+        return decodeURIComponent(part.substring(name.length + 1));
+      }
+    }
+    return null;
+  }
+
+  function mangoGetTypechoLikedCids() {
+    // Typecho Cookie 会带 md5 前缀，这里按后缀匹配即可
+    var cookies = (document.cookie || '').split(';');
+    for (var i = 0; i < cookies.length; i++) {
+      var part = cookies[i].trim();
+      if (!part) continue;
+      var eq = part.indexOf('=');
+      if (eq === -1) continue;
+      var key = part.substring(0, eq);
+      if (key && key.slice(-('extend_contents_likes'.length)) === 'extend_contents_likes') {
+        try {
+          var val = decodeURIComponent(part.substring(eq + 1));
+          return (val || '').split(',').filter(Boolean);
+        } catch (e) {
+          return [];
+        }
+      }
+    }
+    return [];
+  }
+
+  function mangoHasLiked(cid) {
+    if (cid === undefined || cid === null) return false;
+    var id = String(cid);
+    if (mangoGetCookie('post_like_' + id) !== null) return true;
+    var list = mangoGetTypechoLikedCids();
+    return list.indexOf(id) !== -1;
+  }
+
+  function mangoSetLikeCookie(cid) {
+    var id = String(cid);
+    var expires = new Date();
+    expires.setHours(23, 59, 59, 999);
+    document.cookie = 'post_like_' + id + '=1; expires=' + expires.toUTCString() + '; path=/';
+  }
+
+  function mangoApplyLikeState($root) {
+    $root = $root || $(document);
+    $root.find('.specsZan[data-id]').each(function () {
+      var $a = $(this);
+      var cid = $a.data('id');
+      if (mangoHasLiked(cid)) {
+        $a.addClass('done');
+      }
+    });
+  }
+   
+  // 点赞功能
+  $(document).ready(function(){
   // 使用事件委托处理点赞
   $(document).on('click', '.specsZan', function(e){
       e.preventDefault();
@@ -62,7 +154,8 @@
       var cid = $this.data('id');
       
       // 检查是否已经点赞
-      if(checkLikeCookie(cid)) {
+      if(mangoHasLiked(cid)) {
+          mangoToast('请勿重复点赞', 'warning');
           return false;
       }
       
@@ -81,14 +174,27 @@
               cid: cid
           },
           success: function(data){
-              if(data !== 'already_liked') {
-                  // 更新点赞数
-                  $this.find('.count').text(data);
-                  // 添加已点赞状态，但不移除
-                  $this.addClass('done');
-                  // 设置 Cookie
-                  setLikeCookie(cid);
+              data = (data || '').toString().trim();
+              if (data === 'already_liked') {
+                  $('.specsZan[data-id="' + cid + '"]').addClass('done');
+                  mangoSetLikeCookie(cid);
+                  mangoToast('请勿重复点赞', 'warning');
+                  return;
               }
+
+              var num = parseInt(data, 10);
+              if (!isNaN(num) && num >= 0) {
+                  // 更新同一文章的所有点赞数
+                  $('.specsZan[data-id="' + cid + '"] .count').text(num);
+                  $('.specsZan[data-id="' + cid + '"]').addClass('done');
+                  mangoSetLikeCookie(cid);
+                  mangoToast('点赞成功', 'success');
+              } else {
+                  mangoToast('点赞失败，请稍后重试', 'error');
+              }
+          },
+          error: function(){
+              mangoToast('点赞失败，请检查网络后重试', 'error');
           },
           complete: function(){
               // 只移除 loading 状态，保持 done 状态
@@ -99,14 +205,8 @@
       return false;
   });
 
-  // 页面加载时检查已点赞状态
-  $('.specsZan').each(function() {
-      var $this = $(this);
-      var cid = $this.data('id');
-      if(checkLikeCookie(cid)) {
-          $this.addClass('done');
-      }
-  });
+  // 页面加载时同步点赞状态
+  mangoApplyLikeState($(document));
 });
 
 // 列表缩略图加载失败兜底（避免第三方图失效导致大片破图）
@@ -127,6 +227,107 @@ function mangoBindPostThumbnailFallback($root) {
 }
 $(document).ready(function () {
   mangoBindPostThumbnailFallback($(document));
+});
+
+// 文章内容链接：新窗口打开 + 跳转提醒
+function mangoBindArticleLinks($root) {
+  $root = $root || $(document);
+
+  $root.find('.wznrys a[href]').each(function () {
+    var a = this;
+    if (a.dataset && a.dataset.mangoLinkBound === '1') return;
+    if (a.dataset) a.dataset.mangoLinkBound = '1';
+
+    if (a.hasAttribute('data-fancybox') || $(a).closest('[data-fancybox]').length) return;
+    if (a.hasAttribute('download')) return;
+
+    var href = a.getAttribute('href') || '';
+    href = href.trim();
+    if (!href) return;
+    if (href.charAt(0) === '#') return;
+    if (/^javascript:/i.test(href)) return;
+
+    var url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch (e) {
+      return;
+    }
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+    a.setAttribute('target', '_blank');
+
+    var rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+    ['noopener', 'noreferrer'].forEach(function (v) {
+      if (rel.indexOf(v) === -1) rel.push(v);
+    });
+    a.setAttribute('rel', rel.join(' '));
+
+    // 站外链接改为跳转页：/?goto=https%3A%2F%2Fexample.com
+    if (url.host !== window.location.host) {
+      var base = (window.MangoConfig && window.MangoConfig.siteUrl) ? window.MangoConfig.siteUrl : (window.location.origin + '/');
+      try {
+        var go = new URL(base);
+        go.searchParams.set('goto', url.href);
+        a.setAttribute('data-goto', url.href);
+        a.setAttribute('href', go.toString());
+      } catch (err) {
+      }
+    }
+  });
+}
+
+// 评论内容链接：新窗口打开 + 站外走跳转页
+function mangoBindCommentLinks($root) {
+  $root = $root || $(document);
+
+  $root.find('.comment-content a[href], .comment-author a[href]').each(function () {
+    var a = this;
+    if (a.dataset && a.dataset.mangoCommentLinkBound === '1') return;
+    if (a.dataset) a.dataset.mangoCommentLinkBound = '1';
+
+    if (a.hasAttribute('download')) return;
+
+    var href = (a.getAttribute('href') || '').trim();
+    if (!href) return;
+    if (href.charAt(0) === '#') return;
+    if (/^javascript:/i.test(href)) return;
+
+    var url;
+    try {
+      url = new URL(href, window.location.href);
+    } catch (e) {
+      return;
+    }
+
+    if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+    a.setAttribute('target', '_blank');
+
+    var rel = (a.getAttribute('rel') || '').split(/\s+/).filter(Boolean);
+    ['noopener', 'noreferrer'].forEach(function (v) {
+      if (rel.indexOf(v) === -1) rel.push(v);
+    });
+    a.setAttribute('rel', rel.join(' '));
+
+    // 站外链接改为跳转页
+    if (url.host !== window.location.host) {
+      var base = (window.MangoConfig && window.MangoConfig.siteUrl) ? window.MangoConfig.siteUrl : (window.location.origin + '/');
+      try {
+        var go = new URL(base);
+        go.searchParams.set('goto', url.href);
+        a.setAttribute('data-goto', url.href);
+        a.setAttribute('href', go.toString());
+      } catch (err) {
+      }
+    }
+  });
+}
+
+$(document).ready(function () {
+  mangoBindArticleLinks($(document));
+  mangoBindCommentLinks($(document));
 });
    
     // 加载更多文章
@@ -169,6 +370,7 @@ $(document).ready(function () {
                     $box.append($newPosts);
                     $newPosts.hide().fadeIn(500);
                     mangoBindPostThumbnailFallback($newPosts);
+                    mangoApplyLikeState($newPosts);
                 }
 
                 if (resp.nextHref) {

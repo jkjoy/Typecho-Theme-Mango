@@ -44,16 +44,15 @@
             <?php $this->author->gravatar('60', ''); ?>
             <span><?php $this->author(); ?></span>
 		</div>
-		<div class="post_author_r">
+        <div class="post_author_r">
 			<div class="post_author_icon">
 				<a href="#comments" title="评论">
                     <i class="bi bi-chat-square-dots-fill"></i>
                     <?php $this->commentsNum('0', '1', '%d'); ?>
                 </a>
-        <?php $likes = $this->fields->likes ? $this->fields->likes : 0; ?>
 				<a href="javascript:;" data-action="ding" data-id="<?php $this->cid(); ?>" class="specsZan ">
                     <i class="bi bi-hand-thumbs-up-fill"></i>
-                    <small class="count"><?php echo $likes; ?></small>
+                    <small class="count"><?php if (function_exists('get_post_like')) { get_post_like($this); } else { echo 0; } ?></small>
 				</a>
 			</div>
 		</div>
@@ -115,7 +114,7 @@
         <?php while ($relatedPosts->next()): ?> 
             <div class="post_related_list">
                 <a href="<?php $relatedPosts->permalink(); ?>" class="" title="<?php $relatedPosts->title(); ?>">
-                    <?php $relatedPosts->title(25); ?>
+                    <?php $relatedPosts->title(); ?>
                 </a>
             </div>	
         <?php endwhile; ?>	

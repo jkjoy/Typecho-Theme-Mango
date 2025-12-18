@@ -64,10 +64,9 @@
             <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#comments"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
             <span class=""><i class="bi bi-eye-fill"></i><?php get_post_view($this) ?></span>
             <span>
-            <?php $likes = $this->fields->likes ? $this->fields->likes : 0; ?>
             <a href="javascript:;" data-action="ding" data-id="<?php $this->cid(); ?>" class="specsZan ">
                 <i class="bi bi-heart-fill"></i>
-                <em class="count"><?php echo $likes; ?></em>
+                <em class="count"><?php if (function_exists('get_post_like')) { get_post_like($this); } else { echo 0; } ?></em>
             </a>
             </span>
         </div>
