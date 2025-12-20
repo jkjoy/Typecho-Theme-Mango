@@ -1,4 +1,5 @@
 @charset "UTF-8";
+@font-face {font-family:'LXGW';src: url('./fonts/lxgw.woff2') format('woff2');}
 body {
   font-family: PingFang SC, Microsoft YaHei, Helvetica Neue, Helvetica, Arial,
     sans-serif;

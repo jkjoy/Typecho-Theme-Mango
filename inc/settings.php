@@ -48,6 +48,8 @@ function themeConfig($form)
     $form->addInput($darkMode);
     $loadmore = new Typecho_Widget_Helper_Form_Element_Radio('loadmore', ['0' => _t('页码模式'), '1' => _t('加载更多')], '0', _t('文章列表加载模式'), _t(' '));
     $form->addInput($loadmore);
+    $lxgw = new Typecho_Widget_Helper_Form_Element_Radio('lxgw', ['0' => _t('默认字体'), '1' => _t('霞鹜文楷')], '0', _t('选择字体'), _t('选择站点字体'));
+    $form->addInput($lxgw);
     $slidePosts = new Typecho_Widget_Helper_Form_Element_Text(
         'slidePosts',
         NULL,

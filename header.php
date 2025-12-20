@@ -5,6 +5,8 @@
     <meta charset="<?php $this->options->charset(); ?>">
     <meta name="renderer" content="webkit">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta name="description" content="<?php $this->options->description(); ?>" />
+    <meta name="keywords" content="<?php $this->options->keywords(); ?>" />
     <title><?php $this->archiveTitle([
             'category' => _t('分类 %s 下的文章'),
             'search'   => _t('包含关键字 %s 的文章'),
@@ -130,6 +132,13 @@
 })();
 </script>
 <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>?v=<?php echo time(); ?>">
+<?php if (isset($this->options->lxgw) && $this->options->lxgw == '1'): ?>
+<style>
+    body, button, input, select, textarea {
+        font-family: 'LXGW', sans-serif !important;
+    }
+</style>
+<?php endif; ?>
 </head>
 <body class="home blog">
 <header class="header sticky-top">
