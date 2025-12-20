@@ -52,7 +52,7 @@ $this->need('header.php'); ?>
                                 <?php
                                 $created = isset($post['created']) ? (int)$post['created'] : 0;
                                 $permalink = Typecho_Router::url('post', $post, $this->options->index);
-                                $commentsNum = isset($post['commentsNum']) ? (int)$post['commentsNum'] : 0;
+                                $commentsNum = isset($post['commentsNum']) ? max(0, (int)$post['commentsNum']) : 0;
                                 ?>
                                 <li class="mango-archive-item">
                                     <span class="mango-archive-date"><?php echo $created ? date('m-d', $created) : '--'; ?></span>
@@ -73,4 +73,3 @@ $this->need('header.php'); ?>
 </div>
 <?php $this->need('sidebar.php'); ?>
 <?php $this->need('footer.php'); ?>
-

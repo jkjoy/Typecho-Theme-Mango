@@ -94,7 +94,7 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
     while ($recentPosts->next()):
         $result = get_post_thumbnail($recentPosts);
         $thumbnail = !empty($result['cropped_images']) ? $result['cropped_images'][0] : $result['thumbnail'];
-        $commentsNum = intval($recentPosts->commentsNum);
+        $commentsNum = max(0, intval($recentPosts->commentsNum));
     ?>
         <li>
             <div class="thumbnail-container">
@@ -143,7 +143,7 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
                         $thumbnail = !empty($post_images['cropped_images']) ? $post_images['cropped_images'][0] : $post_images['thumbnail'];
                         $title = isset($temp_post['title']) ? htmlspecialchars($temp_post['title']) : '';
                         $permalink = isset($temp_post['permalink']) ? htmlspecialchars($temp_post['permalink']) : '#';
-                        $commentsNum = isset($temp_post['commentsNum']) ? intval($temp_post['commentsNum']) : 0;
+                        $commentsNum = isset($temp_post['commentsNum']) ? max(0, intval($temp_post['commentsNum'])) : 0;
                 ?>
                         <li class="widget_hot_li">
                             <img width="400"

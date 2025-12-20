@@ -8,10 +8,10 @@
                 <span><i class="bi bi-card-list"></i>
                     <?php $this->category(','); ?>
                 </span>
-                <span><i class="bi bi-eye"></i><?php get_post_view($this) ?></span>
+		        <span><i class="bi bi-eye"></i><?php get_post_view($this) ?></span>
 		    	<span><i class="bi bi-chat-square-text"></i>
 				    <a href="<?php $this->permalink() ?>#post_comment_anchor">
-                    <?php $this->commentsNum('0', '1', '%d'); ?>
+                    <?php echo max(0, (int) $this->commentsNum); ?>
                     </a>
 			    </span>
                     <?php if($this->user->hasLogin() && $this->user->pass('editor', true)): ?>    
@@ -44,11 +44,11 @@
             <?php $this->author->gravatar('60', ''); ?>
             <span><?php $this->author(); ?></span>
 		</div>
-        <div class="post_author_r">
+		<div class="post_author_r">
 			<div class="post_author_icon">
 				<a href="#comments" title="评论">
                     <i class="bi bi-chat-square-dots-fill"></i>
-                    <?php $this->commentsNum('0', '1', '%d'); ?>
+                    <?php echo max(0, (int) $this->commentsNum); ?>
                 </a>
 				<a href="javascript:;" data-action="ding" data-id="<?php $this->cid(); ?>" class="specsZan ">
                     <i class="bi bi-hand-thumbs-up-fill"></i>

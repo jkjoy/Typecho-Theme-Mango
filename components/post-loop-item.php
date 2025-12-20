@@ -61,7 +61,7 @@
             <?php endif; ?>
         </div>
         <div class="post_info_footer">
-            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#comments"><?php $this->commentsNum('0', '1', '%d'); ?></a></span>
+            <span class=""><i class="bi bi-chat-square-text-fill"></i><a href="<?php $this->permalink() ?>#comments"><?php echo max(0, (int) $this->commentsNum); ?></a></span>
             <span class=""><i class="bi bi-eye-fill"></i><?php get_post_view($this) ?></span>
             <span>
             <a href="javascript:;" data-action="ding" data-id="<?php $this->cid(); ?>" class="specsZan ">
