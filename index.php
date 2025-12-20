@@ -6,8 +6,8 @@
  * 老孙博客移植
  * @package  Mango 
  * @author 老孙
- * @version 1.3.0
- * @link http://www.imsun.org
+ * @version 1.4.0
+ * @link http://www.imsun.pw
  */
 
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
@@ -27,14 +27,13 @@ if (function_exists('mango_is_json_pagination_request') && mango_is_json_paginat
         'hasMore' => !empty($nextHref),
     ]);
 }
-
 $this->need('header.php');
 ?>
 <div class="col-lg-8">
     <div class="post_box">
     <?php while ($this->next()): ?>
         <?php $this->need('components/post-loop-item.php'); ?>
-<?php endwhile; ?>
+    <?php endwhile; ?>
 </div>
 <?php if ($this->options->loadmore == 0): ?>
 <?php $this->pageNav('上页','下页',1,'...',array(

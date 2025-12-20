@@ -71,6 +71,7 @@ function themeConfig($form)
             'ShowRecentComments' => _t('显示最近回复'),
             'ShowHotPosts'       => _t('显示热门文章'),
             'ShowTags'           => _t('显示标签'),
+            'ShowToc'            => _t('显示文章目录'),
             'ShowOther'          => _t('显示其它杂项')
         ],
         ['ShowRecentPosts', 'ShowRecentComments', 'ShowHotPosts', 'ShowTags', 'ShowOther'],

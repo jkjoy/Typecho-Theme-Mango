@@ -146,6 +146,15 @@ class CustomContentFilter
         $replacement = '<figure class="size-full"><a href="$1" data-fancybox="gallery"><img decoding="async" src="$1" alt="$2" class="wp-image"/></a></figure>';
         
         // 执行替换
-        return preg_replace($pattern, $replacement, $content);
+        $content = preg_replace($pattern, $replacement, $content);
+
+        if (function_exists('mango_build_toc_and_inject_ids')) {
+            $result = mango_build_toc_and_inject_ids($content, $widget);
+            if (is_array($result) && isset($result['content'])) {
+                $content = $result['content'];
+            }
+        }
+
+        return $content;
     }
 }
