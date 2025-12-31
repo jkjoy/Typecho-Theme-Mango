@@ -6,7 +6,7 @@
  * 老孙博客移植
  * @package  Mango 
  * @author 老孙
- * @version 1.4.0
+ * @version 1.5.0
  * @link http://www.imsun.pw
  */
 
