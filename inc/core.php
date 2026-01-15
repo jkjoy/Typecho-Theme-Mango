@@ -167,9 +167,9 @@ function get_thumb($imgUrl, $options) {
 
     $timthumb = rtrim((string)Helper::options()->themeUrl, '/') . '/timthumb.php';
     $srcParam = '/' . ltrim((string)$relativePath, '/');
-    $encodedSrc = str_replace('%2F', '/', rawurlencode($srcParam));
+    $encodedSrc = mango_timthumb_encode_src($srcParam);
 
-    return $timthumb . '?src=' . $encodedSrc . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
+    return $timthumb . '?src=' . rawurlencode($encodedSrc) . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
 }
 
 /**
@@ -211,9 +211,22 @@ function mango_timthumb_url($imgUrl, $width = 400, $height = 400, $zc = 1, $q = 
 
     $timthumb = rtrim((string)Helper::options()->themeUrl, '/') . '/timthumb.php';
     $srcParam = '/' . ltrim(rawurldecode($path), '/');
-    $encodedSrc = str_replace('%2F', '/', rawurlencode($srcParam));
+    $encodedSrc = mango_timthumb_encode_src($srcParam);
 
-    return $timthumb . '?src=' . $encodedSrc . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
+    return $timthumb . '?src=' . rawurlencode($encodedSrc) . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
+}
+
+/**
+ * TimThumb(本仓库版本)的 src 参数需要 base64url 编码（仅对本地文件路径）。
+ *
+ * @param string $srcPath 形如 /usr/uploads/xxx.jpg
+ * @return string
+ */
+function mango_timthumb_encode_src($srcPath)
+{
+    $srcPath = (string)$srcPath;
+    $b64 = base64_encode($srcPath);
+    return str_replace(array('+', '/', '='), array('-', '_', ''), $b64);
 }
 /**
  * 获取幻灯片文章

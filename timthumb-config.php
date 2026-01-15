@@ -7,6 +7,9 @@ define('ALLOW_EXTERNAL', false);
 define('ALLOW_ALL_EXTERNAL_SITES', false);
 define('WEBSHOT_ENABLED', false);
 define('DISPLAY_ERROR_MESSAGES', false);
+@ini_set('display_errors', '0');
+@ini_set('html_errors', '0');
+@error_reporting(0);
 
 // Avoid being used as a public thumbnail service.
 define('BLOCK_EXTERNAL_LEECHERS', true);
