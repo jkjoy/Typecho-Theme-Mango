@@ -103,38 +103,24 @@ function get_post_thumbnail($post) {
  * @return string 缩略图URL
  */
 function get_thumb($imgUrl, $options) {
-    $theme_dir = basename(dirname(__FILE__));
-    $upload_dir = __TYPECHO_ROOT_DIR__ . '/usr/cache/thumbnails/';
     // 获取默认缩略图URL（用于图片加载失败时）
     $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
     $custom_thumbnail = Helper::options()->thumbUrl ?? '';
     if (!empty($custom_thumbnail)) {
         $default_thumbnail = $custom_thumbnail;
     }
-    // 确保缓存目录存在
-    if (!is_dir($upload_dir)) {
-        if (!@mkdir($upload_dir, 0755, true)) {
-            return $default_thumbnail; // 如果无法创建目录，返回默认图片
-        }
-    }
-    // 生成唯一文件名
-    $hash = md5($imgUrl);
-    $thumbnail_path = $upload_dir . $hash . '.webp';
-    $thumbnail_url = Helper::options()->siteUrl . 'usr/cache/thumbnails/' . $hash . '.webp';
-    $fail_marker_path = $upload_dir . $hash . '.fail';
-    // 如果缩略图已存在，直接返回
-    if (file_exists($thumbnail_path)) {
-        return $thumbnail_url;
-    }
-    // 失败缓存：避免对失效第三方链接反复阻塞请求
-    if (file_exists($fail_marker_path) && (time() - filemtime($fail_marker_path)) < 7 * 86400) {
+
+    $imgUrl = (string)$imgUrl;
+    if ($imgUrl === '') {
         return $default_thumbnail;
     }
-    // JSON翻页时不做远程缩略图生成，优先快速返回（避免被第三方图片超时拖慢）
+
+    // JSON翻页时不走 TimThumb（减少服务端额外处理）
     if (function_exists('mango_is_json_pagination_request') && mango_is_json_pagination_request()) {
         return $imgUrl ?: $default_thumbnail;
     }
-    // 非本站图片不生成缩略图，直接让浏览器加载原图（失败也不会阻塞后端）
+
+    // 非本站图片不走 TimThumb（TimThumb 默认也应禁用外链）
     if (function_exists('mango_is_external_url') && mango_is_external_url($imgUrl)) {
         return $imgUrl ?: $default_thumbnail;
     }
@@ -144,85 +130,90 @@ function get_thumb($imgUrl, $options) {
         return $imgUrl ?: $default_thumbnail;
     }
 
-    // 获取原始图片
-    $img_data = false;
+    // 尽量把 URL 映射成站内相对路径（相对 __TYPECHO_ROOT_DIR__），供 TimThumb 读取本地文件
+    $relativePath = null;
     if (function_exists('mango_local_path_from_url')) {
         $localPath = mango_local_path_from_url($imgUrl);
         if ($localPath && is_file($localPath)) {
-            $img_data = @file_get_contents($localPath);
+            $root = rtrim(str_replace('\\', '/', __TYPECHO_ROOT_DIR__), '/');
+            $localPathNorm = str_replace('\\', '/', $localPath);
+            if (stripos($localPathNorm, $root . '/') === 0) {
+                $relativePath = substr($localPathNorm, strlen($root));
+            }
         }
     }
-    if ($img_data === false) {
-        $ctx = stream_context_create([
-            'http' => [
-                'timeout' => 3,
-                'header' => "User-Agent: MangoThumb/1.0\r\nAccept: image/*\r\n",
-            ],
-        ]);
-        $img_data = @file_get_contents($imgUrl, false, $ctx);
-    }
-    if ($img_data === false) {
-        @touch($fail_marker_path);
-        return $default_thumbnail; // 图片404或无法获取时，返回默认图片
-    }
-    // 创建图片资源
-    $src = @imagecreatefromstring($img_data);
-    if (!$src) {
-        @touch($fail_marker_path);
-        return $default_thumbnail; // 图片格式无效或无法创建资源时，返回默认图片
-    }
-    try {
-        $width = imagesx($src);
-        $height = imagesy($src);
-        // 计算缩略图尺寸
-        $target_ratio = 1 / 1;
-        $src_ratio = $width / $height; 
-        if ($src_ratio > $target_ratio) {
-            $new_height = $height;
-            $new_width = $height * $target_ratio;
-            $src_x = ($width - $new_width) / 2;
-            $src_y = 0;
-        } else {
-            $new_width = $width;
-            $new_height = $width / $target_ratio;
-            $src_x = 0;
-            $src_y = ($height - $new_height) / 2;
+
+    if ($relativePath === null) {
+        $path = (string)parse_url($imgUrl, PHP_URL_PATH);
+        if ($path !== '') {
+            // 兼容站点装在子目录：去掉 siteUrl 的 base path
+            $siteBasePath = (string)parse_url((string)Helper::options()->siteUrl, PHP_URL_PATH);
+            $siteBasePath = rtrim($siteBasePath, '/');
+            if ($siteBasePath !== '' && strncmp($path, $siteBasePath, strlen($siteBasePath)) === 0) {
+                $path = substr($path, strlen($siteBasePath));
+            }
+            $relativePath = '/' . ltrim(rawurldecode($path), '/');
         }
-        // 计算最终尺寸
-        $scale = min(400/$new_width, 400/$new_height);
-        $dst_width = (int)($new_width * $scale);
-        $dst_height = (int)($new_height * $scale);
-        // 创建目标图像
-        $thumb = imagecreatetruecolor($dst_width, $dst_height);
-        // 处理透明背景
-        imagealphablending($thumb, false);
-        imagesavealpha($thumb, true);
-        // 重采样
-        imagecopyresampled(
-            $thumb, $src,
-            0, 0, $src_x, $src_y,
-            $dst_width, $dst_height,
-            $new_width, $new_height
-        );
-        // 保存缩略图
-        if (!@imagewebp($thumb, $thumbnail_path, 85)) {
-            @touch($fail_marker_path);
-            return $default_thumbnail;
-        }
-        return $thumbnail_url;
-    } catch (Exception $e) {
-        // 发生异常时返回默认图片
-        @touch($fail_marker_path);
+    }
+
+    if ($relativePath === null || $relativePath === '/') {
+        return $imgUrl ?: $default_thumbnail;
+    }
+
+    $width = 400;
+    $height = 400;
+    $zc = 1;
+    $q = 85;
+
+    $timthumb = rtrim((string)Helper::options()->themeUrl, '/') . '/timthumb.php';
+    $srcParam = '/' . ltrim((string)$relativePath, '/');
+    $encodedSrc = str_replace('%2F', '/', rawurlencode($srcParam));
+
+    return $timthumb . '?src=' . $encodedSrc . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
+}
+
+/**
+ * 生成 TimThumb 缩略图 URL（可供模板直接使用）
+ *
+ * @param string $imgUrl 原始图片URL（建议站内）
+ * @param int $width 宽
+ * @param int $height 高
+ * @param int $zc 裁切模式（TimThumb zc）
+ * @param int $q 质量（TimThumb q）
+ * @return string
+ */
+function mango_timthumb_url($imgUrl, $width = 400, $height = 400, $zc = 1, $q = 85)
+{
+    $default_thumbnail = Helper::options()->themeUrl . '/assets/img/nopic.svg';
+    $custom_thumbnail = Helper::options()->thumbUrl ?? '';
+    if (!empty($custom_thumbnail)) {
+        $default_thumbnail = $custom_thumbnail;
+    }
+
+    $imgUrl = (string)$imgUrl;
+    if ($imgUrl === '') {
         return $default_thumbnail;
-    } finally {
-        // 释放资源
-        if (isset($src)) {
-            imagedestroy($src);
-        }
-        if (isset($thumb)) {
-            imagedestroy($thumb);
-        }
     }
+    if (function_exists('mango_is_external_url') && mango_is_external_url($imgUrl)) {
+        return $imgUrl;
+    }
+
+    $path = (string)parse_url($imgUrl, PHP_URL_PATH);
+    if ($path === '') {
+        return $imgUrl;
+    }
+
+    $siteBasePath = (string)parse_url((string)Helper::options()->siteUrl, PHP_URL_PATH);
+    $siteBasePath = rtrim($siteBasePath, '/');
+    if ($siteBasePath !== '' && strncmp($path, $siteBasePath, strlen($siteBasePath)) === 0) {
+        $path = substr($path, strlen($siteBasePath));
+    }
+
+    $timthumb = rtrim((string)Helper::options()->themeUrl, '/') . '/timthumb.php';
+    $srcParam = '/' . ltrim(rawurldecode($path), '/');
+    $encodedSrc = str_replace('%2F', '/', rawurlencode($srcParam));
+
+    return $timthumb . '?src=' . $encodedSrc . '&w=' . (int)$width . '&h=' . (int)$height . '&zc=' . (int)$zc . '&q=' . (int)$q;
 }
 /**
  * 获取幻灯片文章
