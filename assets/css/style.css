@@ -2589,3 +2589,9 @@ img {
 .dark .posts-nav .current a {
   background: #4270f6;
 }
+.beian {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 12px;
+  color: #888;
+}
