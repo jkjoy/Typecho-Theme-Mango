@@ -31,12 +31,9 @@ $this->need('header.php');
 ?>
 <div class="col-lg-8">
     <div class="post_box">
-    <?php while ($this->next()): ?>
-        <?php $this->need('components/post-loop-item.php'); ?>
-    <?php endwhile; ?>
-</div>
-<?php if ($this->options->loadmore == 0): ?>
-<?php $this->pageNav('上页','下页',1,'...',array(
+        <?php while ($this->next()):$this->need('components/post-loop-item.php');endwhile; ?>
+    </div>
+<?php if ($this->options->loadmore == 0): $this->pageNav('上页','下页',1,'...',array(
                             'wrapTag' => 'div',
                             'wrapClass' => 'posts-nav',
                             'itemTag' => 'span',
@@ -45,17 +42,13 @@ $this->need('header.php');
                             'currentClass' => 'post-page-numbers current',
                             'prevClass' => 'hidden',
                             'nextClass' => 'hidden'
-                        ));?>                    
-<?php else: ?>
-<?php
+                        )); else:
 $nextPage = $this->_currentPage + 1;
 $totalPages = ceil($this->getTotal() / $this->parameter->pageSize);
 if ($this->_currentPage < $totalPages): ?>
     <div class="post-read-more">
     <?php $this->pageLink('加载更多', 'next'); ?>
     </div>
-<?php endif; ?>  
-<?php endif; ?>
+<?php endif; endif; ?>
 </div>
-<?php $this->need('sidebar.php'); ?>
-<?php $this->need('footer.php'); ?>
+<?php $this->need('sidebar.php');$this->need('footer.php'); ?>

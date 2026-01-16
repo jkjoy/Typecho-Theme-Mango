@@ -22,9 +22,7 @@
         </div>
 	</div>
 </footer>
-<?php if ($this->options->tongji): ?>
-<?php echo $this->options->tongji(); ?>
-<?php endif; ?>
+<?php if ($this->options->tongji): echo $this->options->tongji(); endif; ?>
 <!-- end #footer -->
 <button class="scrollToTopBtn" title="返回顶部"><i class="bi bi-chevron-up"></i></button>
 <?php $this->footer(); ?>

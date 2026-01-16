@@ -66,10 +66,8 @@ $this->need('header.php'); ?>
                             <?php endforeach; ?>
                         </ul>
                     </section>
-                <?php endforeach; ?>
-            <?php endif; ?>
+                <?php endforeach;endif; ?>
         </div>
     </div>
 </div>
-<?php $this->need('sidebar.php'); ?>
-<?php $this->need('footer.php'); ?>
+<?php $this->need('sidebar.php');$this->need('footer.php'); ?>

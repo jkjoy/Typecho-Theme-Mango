@@ -85,8 +85,7 @@ $hotPostsCount = isset($this->options->hotarticle) ? intval($this->options->hota
 if ($hotPostsCount <= 0) $hotPostsCount = 5;
 $hotTagsCount = isset($this->options->hottags) ? intval($this->options->hottags) : 0;
 if ($hotTagsCount <= 0) $hotTagsCount = 20;
-?>
-<?php if (in_array('ShowRecentPosts', $sidebarBlock)): ?>
+if (in_array('ShowRecentPosts', $sidebarBlock)): ?>
 <ul class="author_post">
 <?php
     // 获取指定用户的最近文章
@@ -115,21 +114,21 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
 <?php endif; ?>
 
 <!-- 文章目录 -->
-<?php if (in_array('ShowToc', $sidebarBlock) && method_exists($this, 'is') && $this->is('single') && $this->is('post')): ?>
-    <?php $tocHtml = function_exists('mango_get_current_toc_html') ? mango_get_current_toc_html() : ''; ?>
-    <?php if (!empty($tocHtml)): ?>
+<?php 
+    if (in_array('ShowToc', $sidebarBlock) && method_exists($this, 'is') && $this->is('single') && $this->is('post')):
+    $tocHtml = function_exists('mango_get_current_toc_html') ? mango_get_current_toc_html() : '';
+    if (!empty($tocHtml)): 
+    ?>
         <aside id="toc-2" class="widget widget_toc">
             <h3 class="widget-title">文章目录</h3>
             <div class="toc-content">
                 <?php echo $tocHtml; ?>
             </div>
         </aside>
-    <?php endif; ?>
-<?php endif; ?>
+    <?php endif;endif; ?>
 
 <!-- 热门文章 -->
-<?php if (in_array('ShowHotPosts', $sidebarBlock)): ?>
-    <?php
+<?php if (in_array('ShowHotPosts', $sidebarBlock)): 
     try {
         $hotPosts = $db->fetchAll($db->select()
             ->from('table.contents')
@@ -187,16 +186,14 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
         </aside>
     <?php else: ?>
         <p>无热门文章</p>
-    <?php endif; ?>
-<?php endif; ?>
+    <?php endif;endif; ?>
 
 <!-- 最近回复 -->
 <?php if (in_array('ShowRecentComments', $sidebarBlock)): ?>
     <aside id="comments-3" class="widget widget_comments">
         <h3 class="widget-title"><?php _e('最近回复'); ?></h3>
         <ul class="widget_comment_ul">
-        <?php $comments = \Widget\Comments\Recent::alloc(array('ignoreAuthor' => true)); ?>
-            <?php while ($comments->next()): ?>
+        <?php $comments = \Widget\Comments\Recent::alloc(array('ignoreAuthor' => true));  while ($comments->next()): ?>
                 <li>
                 <?php echo $comments->gravatar('40', ''); ?>
                 <div class="widget_comment_info">
@@ -213,8 +210,7 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
 <?php endif; ?>
 
 <!-- 热门标签 -->
-<?php if (in_array('ShowTags', $sidebarBlock)): ?>
-    <?php
+<?php if (in_array('ShowTags', $sidebarBlock)):
     // 获取热门标签
     $tags = \Widget\Metas\Tag\Cloud::alloc('sort=count&desc=1&limit=' . $hotTagsCount);
     if ($tags->have()):
@@ -236,8 +232,7 @@ if ($hotTagsCount <= 0) $hotTagsCount = 20;
             <h3 class="widget-title">热门标签</h3>
             <div class="tagcloud"></div>
         </aside>
-    <?php endif; ?>
-<?php endif; ?>
+    <?php endif; endif; ?>
 
  <!-- 其它 -->
 <?php if (in_array('ShowOther', $sidebarBlock)): ?>

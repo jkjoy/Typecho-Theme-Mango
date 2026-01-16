@@ -44,28 +44,6 @@ if (!empty($slides)):
         </div>
     </div>
 </section>
-<style>
-.post-images {
-    width: 900px;
-    height: 350px;
-    object-fit: cover;
-    object-position: center;
-}
-/* 添加以下样式使指示器变为圆形 */
-.carousel-indicators button {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;  /* 这行是关键，使元素变为圆形 */
-    padding: 0;
-    margin: 0 5px;
-    border: none;
-    background-color: rgba(0, 0, 0, 0.3);
-    transition: background-color 0.3s ease;
-}
-.carousel-indicators button.active {
-    background-color: rgba(0, 0, 0, 0.8);
-}
-</style>
 <script>
 // 轮播图实现
 class Carousel {

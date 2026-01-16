@@ -159,8 +159,7 @@
                         <i class="bi bi-folder-fill me-1"></i>分类
                         </a>
                         <ul class="sub-menu" style="display: none;">
-                        <?php $categories = Typecho_Widget::widget('Widget_Metas_Category_List'); ?>
-                        <?php while($categories->next()): ?>
+                        <?php $categories = Typecho_Widget::widget('Widget_Metas_Category_List'); while($categories->next()): ?>
                         <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
                             <a href="<?php $categories->permalink(); ?>">
                             <?php echo categoryIcon($categories); ?>
@@ -169,8 +168,7 @@
                         <?php endwhile; ?>
                         </ul>
                     </li>
-                    <?php $this->widget('Widget_Contents_Page_List')->to($pages); ?>
-                        <?php while($pages->next()): ?>
+                    <?php $this->widget('Widget_Contents_Page_List')->to($pages);while($pages->next()): ?>
                         <li class="menu-item menu-item-type-post_type menu-item-object-page menu-item-28">
                              <a href="<?php $pages->permalink(); ?>">
                              <?php echo pageIcon($pages->slug, $pages->title); ?>
@@ -225,15 +223,13 @@
             <li class="menu-item<?php if ($this->is('index')): ?> current-menu-item<?php endif; ?>">
                 <a href="<?php $this->options->siteUrl(); ?>"><?php _e('首页'); ?></a>
             </li>
-            <?php \Widget\Contents\Page\Rows::alloc()->to($pages); ?>
-            <?php while ($pages->next()): ?>
+            <?php \Widget\Contents\Page\Rows::alloc()->to($pages); while ($pages->next()): ?>
                 <li class="menu-item<?php if ($this->is('page', $pages->slug)): ?> current-menu-item<?php endif; ?>">
                     <a href="<?php $pages->permalink(); ?>" title="<?php $pages->title(); ?>"><?php $pages->title(); ?></a>
                 </li>
             <?php endwhile; ?>
             
-            <?php $this->widget('Widget_Metas_Category_List')->to($categories); ?>
-            <?php if ($categories->have()): ?>
+            <?php $this->widget('Widget_Metas_Category_List')->to($categories);if ($categories->have()): ?>
             <li class="menu-item menu-item-has-children">
                 <a href="javascript:void(0);"><?php _e('分类'); ?></a>
                 <ul class="sub-menu">
@@ -249,9 +245,7 @@
     </div>
 </div>
 
-<?php if ($this->is('index')): ?>
-<?php $this->need('slidesposts.php'); ?>
-<?php endif; ?> 
+<?php if ($this->is('index')):$this->need('slidesposts.php');endif; ?> 
 
 <section class="index_area">
     <div class="container">

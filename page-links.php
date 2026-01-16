@@ -1,5 +1,4 @@
-<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
-<?php
+<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit;
 $rawText = isset($this->text) ? (string)$this->text : '';
 $hasLinksTag = stripos($rawText, '<links') !== false;
 
@@ -41,8 +40,7 @@ if (!function_exists('mango_links_avatar_url')) {
         return $gravatarPrefix . $hash . '?s=' . (int)$size . '&d=mm&r=g';
     }
 }
-?>
-<?php $this->need('header.php'); ?>
+$this->need('header.php'); ?>
 <div class="col-lg-8">
     <div class="post_container_title">
         <h1><?php $this->title(); ?></h1>
@@ -60,16 +58,14 @@ if (!function_exists('mango_links_avatar_url')) {
                     <div class="mango-empty">友情链接加载失败：<?php echo htmlspecialchars((string)$linkQueryError); ?></div>
                 <?php elseif (empty($linksBySort)): ?>
                     <div class="mango-empty">暂无友情链接</div>
-                <?php else: ?>
-                    <?php foreach ($linksBySort as $sortLabel => $links): ?>
+                <?php else:foreach ($linksBySort as $sortLabel => $links): ?>
                         <section class="mango-links-group">
                             <h2 class="mango-links-title">
                                 <i class="bi bi-folder-fill me-2"></i><?php echo htmlspecialchars((string)$sortLabel); ?>
                                 <small><?php echo count($links); ?> 个</small>
                             </h2>
                             <div class="row g-3 mango-links-grid">
-                                <?php foreach ($links as $link): ?>
-                                    <?php
+                                <?php foreach ($links as $link):
                                     $name = trim((string)($link['name'] ?? ''));
                                     $url = trim((string)($link['url'] ?? ''));
                                     $desc = trim((string)($link['description'] ?? ''));
@@ -98,7 +94,8 @@ if (!function_exists('mango_links_avatar_url')) {
                                                    href="<?php echo htmlspecialchars($url); ?>"
                                                    target="_blank"
                                                    rel="noopener"
-                                                   <?php echo $url === '#' ? 'aria-disabled="true"' : ''; ?>>
+                                                   <?php echo $url === '#' ? 'aria-disabled="true"' : ''; ?>
+                                                >
                                                     <?php echo htmlspecialchars($name); ?>
                                                 </a>
                                             </span>
@@ -110,12 +107,10 @@ if (!function_exists('mango_links_avatar_url')) {
                                 <?php endforeach; ?>
                             </div>
                         </section>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+                    <?php endforeach; endif; ?>
             </div>
         <?php endif; ?>
     </div>
     <?php $this->need('comments.php'); ?>
 </div>
-<?php $this->need('sidebar.php'); ?>
-<?php $this->need('footer.php'); ?>
+<?php $this->need('sidebar.php');$this->need('footer.php'); ?>

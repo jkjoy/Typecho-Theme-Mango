@@ -1,8 +1,5 @@
-<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; ?>
-<?php $this->need('header.php'); ?>
-<style>
-  .header,.footer{display: none;}
-</style>
+<?php if (!defined('__TYPECHO_ROOT_DIR__')) exit;$this->need('header.php'); ?>
+<style>.header,.footer{display: none;}</style>
 <main style="display:flex;flex-direction:column;justify-content:center;align-items:center;height:100vh;">
   <h2 class="h1 mt-5 mb-3">看来您迷路了</h2>
   <p class="h5 f300 mb-5">我们找不到您想要的页面，<a href="<?php $this->options->siteUrl(); ?>" title="返回首页" class="border-bottom">返回首页</a></p>

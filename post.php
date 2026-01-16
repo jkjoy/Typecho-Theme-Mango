@@ -23,20 +23,17 @@
 	</div>
     <div class="post_container">
 		<article class="wznrys">
-			<?php //$this->content(); ?><?php echo CustomContentFilter::parseImage($this->content, $this); ?>
+			<?php echo CustomContentFilter::parseImage($this->content, $this); ?>
 		</article>
             <?php if ($this->modified > $this->created): ?>
         <p>最后更新于 <?php echo date('Y-m-d H:i:s', $this->modified); ?></p>
             <?php endif; ?>			
 		<div class="post_loop_tag">
-            <?php if ($this->tags): ?>
-            <?php foreach ($this->tags as $tag): ?>
+            <?php if ($this->tags):foreach ($this->tags as $tag): ?>
             <em> 
                 <a href="<?php echo $tag['permalink']; ?>"><i class="bi bi-hash"></i><?php echo $tag['name']; ?></a> 
             </em>
-            <?php endforeach; ?>
-            <?php else: ?>
-            <?php endif; ?>
+            <?php endforeach;else:endif; ?>
         </div>
 	</div>
 	<div class="post_author">
@@ -89,9 +86,7 @@
                         <p><?php echo $prev['title']; ?></p>
                     </div>
                 </a>
-            <?php else: ?>
-          
-            <?php endif; ?>
+            <?php else: endif; ?>
             </div>
             <div class="prev_next_box nav_next"<?php if (!$prev) echo ' style="width:100%"'; ?>>
             <?php if ($next):
@@ -103,9 +98,7 @@
                         <p><?php echo $next['title']; ?></p>
                     </div>
                 </a>
-            <?php else: ?>
-    
-            <?php endif; ?>
+            <?php else:endif; ?>
             </div>
         </div>
     <?php $this->related(5)->to($relatedPosts); if ($relatedPosts->have()):?>
@@ -119,8 +112,6 @@
             </div>	
         <?php endwhile; ?>	
     </div>	 
-    <?php endif; ?>	
-    <?php $this->need('comments.php'); ?>
+    <?php endif;$this->need('comments.php'); ?>
 </div><!-- #main-->
-<?php $this->need('sidebar.php'); ?>
-<?php $this->need('footer.php'); ?>
+<?php $this->need('sidebar.php');$this->need('footer.php'); ?>
