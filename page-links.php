@@ -1,4 +1,9 @@
 <?php if (!defined('__TYPECHO_ROOT_DIR__')) exit;
+/**
+ * 友链模板
+ *
+ * @package custom              
+ */
 $rawText = isset($this->text) ? (string)$this->text : '';
 $hasLinksTag = stripos($rawText, '<links') !== false;
 
