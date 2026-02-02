@@ -1,6 +1,6 @@
 <?php if (!defined('__TYPECHO_ROOT_DIR__')) exit; 
 /**
- * 归档页面模板
+ * 文章归档
  *
  * @package custom              
  */
