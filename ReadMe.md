@@ -9,9 +9,10 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 - Typecho 1.2 或更高版本。
 - PHP 8.0 或更高版本。
 - PHP DOM 扩展，建议启用；未启用时文章目录会使用兼容解析方式。
+- 在线更新需要 PHP ZipArchive，并且 cURL 或 `allow_url_fopen` 至少有一项可用。
 - 数据库账号需要 `ALTER TABLE` 权限。主题首次统计浏览量和点赞数时，会在 `contents` 表中自动创建 `views`、`likes` 字段。
 - `usr/cache/` 目录需要可写，站内图片缩略图缓存保存在 `usr/cache/timthumb/`。
-- [Links](https://github.com/typecho-fans/plugins/tree/master/Links) 插件为可选依赖；友情链接页面和首页底部友情链接需要该插件。
+- [Links](https://github.com/typecho-fans/plugins/tree/master/Links) 插件为可选依赖。友情链接页面需要该插件创建 `links` 数据表，初始化后即使插件停用也能直接读取数据；首页底部友情链接仍要求插件处于启用状态。
 
 ## 安装
 
@@ -147,9 +148,9 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 4. 将页面缩略名设为 `links`。
 5. 发布页面。
 
-主题通过 `page-links.php` 按 Links 插件中的分类字段分组展示链接。头像优先级为：链接图片、邮箱 Gravatar、Links 插件占位图。
+主题通过 `page-links.php` 直接读取 `links` 数据表，并按分类字段分组展示链接；只要数据表存在，即使插件暂时停用也可以正常显示。头像优先级为：链接图片、邮箱 Gravatar、主题内置占位图。未检测到数据表时，页面会提示安装并启用 Links 插件完成初始化。
 
-如果页面正文中已经包含 `<links ...>` 插件标签，主题会输出正文中的插件结果，不再重复生成链接卡片。
+如果页面正文中保留了旧的 `<links ...>` 插件标签，主题会忽略该标签的输出，统一使用数据表生成链接卡片。
 
 ## 导航图标
 
@@ -203,9 +204,22 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 
 建议在升级主题、修改大量配置和更换站点环境前创建备份。主题目录名改变后，旧设置和备份不会自动关联到新目录名。
 
-## 更新检查
+## 在线更新
 
-进入主题设置页时，主题会请求 GitHub Releases 检查新版本。检查结果缓存在 `usr/cache/version.json`，默认缓存 12 小时。无法访问 GitHub 时不会影响前台页面，主题会优先使用已有缓存。
+进入主题设置页时，主题会请求 GitHub Releases 检查最新正式版。检查结果缓存在 `usr/cache/mango-theme-release.json`，默认缓存 12 小时。无法访问 GitHub 时不会影响前台页面，主题会优先使用已有缓存。
+
+发现新版本后，“主题更新”区域会显示“在线更新”按钮。更新流程如下：
+
+1. 从项目官方 GitHub Release 下载 ZIP 包。
+2. 检查 ZIP 路径、符号链接、文件数量、解压大小、主题结构和版本号。
+3. 将当前主题文件打包备份，默认只保留最近 5 份。
+4. 将新版本复制到同级暂存目录。
+5. 交换主题目录；任何安装或复核错误都会尝试恢复旧目录。
+6. 保留原主题设置并清理版本检查缓存。
+
+更新前文件备份优先保存在 Typecho 根目录上级的隐藏更新目录；该位置不可写时使用 PHP 系统临时目录。更新完成后的后台提示会显示备份绝对路径。
+
+在线更新会完整替换当前主题目录，额外添加或直接修改的主题文件不会合并。请先保存自定义修改。主题目录及其上级目录必须可写；检测到 `.git` 时在线更新会拒绝覆盖，请改用 `git pull`。
 
 ## 常见问题
 
@@ -217,9 +231,9 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 
 先安装并启用 Links 插件，再开启“首页底部链接”。该选项会直接调用插件输出方法。
 
-### 友情链接页面提示未启用插件
+### 友情链接页面提示未检测到 links 数据表
 
-确认插件目录名为 `Links`，并已在 Typecho 后台启用。页面缩略名必须为 `links`。
+安装并启用 Links 插件完成数据表初始化，再刷新友情链接页面。初始化后页面会直接读取 `links` 表，不要求插件持续启用。页面缩略名必须为 `links`。
 
 ### 缩略图无法显示
 
@@ -228,6 +242,18 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 ### 浏览量或点赞始终为 0
 
 确认数据库账号具有 `ALTER TABLE` 和 `UPDATE` 权限，并检查 PHP 错误日志中是否存在 `views` 或 `likes` 字段创建失败的信息。
+
+### 在线更新不可用或失败
+
+确认 PHP 已启用 ZipArchive，服务器可以通过 HTTPS 访问 `github.com` 和 `api.github.com`，并且主题目录及其上级目录可写。Git 工作区请使用 `git pull`。无法满足这些条件时，从 Releases 下载压缩包并按“从旧版本升级”步骤手动覆盖。
+
+## 1.7.0 更新说明
+
+- 增加 GitHub Release 在线检查和后台一键更新。
+- 更新前自动备份主题文件，默认保留最近 5 份。
+- 增加 ZIP 路径、符号链接、大小、主题结构和目标版本校验。
+- 使用暂存目录交换安装，失败时自动回滚旧主题。
+- 友情链接页面改为直接读取 `links` 数据表，插件停用后仍可展示已有链接。
 
 ## 1.6.0 更新说明
 

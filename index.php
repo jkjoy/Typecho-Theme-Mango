@@ -3,11 +3,10 @@
  * Mango for Typecho
  * 双栏主题
  * 原作者 huitheme
- * 老孙博客移植
  * @package  Mango 
- * @author 老孙
- * @version 1.6.0
- * @link http://www.imsun.pw
+ * @author 老孙博客
+ * @version 1.7.0
+ * @link http://www.imsun.org
  */
 
 if (!defined('__TYPECHO_ROOT_DIR__')) exit;
