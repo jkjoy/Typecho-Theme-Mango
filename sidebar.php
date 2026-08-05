@@ -113,20 +113,6 @@ if (in_array('ShowRecentPosts', $sidebarBlock)): ?>
 </ul>
 <?php endif; ?>
 
-<!-- 文章目录 -->
-<?php 
-    if (in_array('ShowToc', $sidebarBlock) && method_exists($this, 'is') && $this->is('single') && $this->is('post')):
-    $tocHtml = function_exists('mango_get_current_toc_html') ? mango_get_current_toc_html() : '';
-    if (!empty($tocHtml)): 
-    ?>
-        <aside id="toc-2" class="widget widget_toc">
-            <h3 class="widget-title">文章目录</h3>
-            <div class="toc-content">
-                <?php echo $tocHtml; ?>
-            </div>
-        </aside>
-    <?php endif;endif; ?>
-
 <!-- 热门文章 -->
 <?php if (in_array('ShowHotPosts', $sidebarBlock)): 
     try {

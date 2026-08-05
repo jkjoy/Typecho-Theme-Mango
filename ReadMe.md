@@ -1,6 +1,6 @@
 # Mango for Typecho
 
-Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植并持续维护的 Typecho 双栏主题，提供响应式文章列表、深浅色模式、文章图片灯箱、文章目录、浏览与点赞统计、评论等级、友情链接和主题配置备份等功能。
+Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植并持续维护的 Typecho 双栏主题，提供响应式文章列表、深浅色模式、文章图片灯箱、浏览与点赞统计、评论等级、友情链接和主题配置备份等功能。
 
 ![Mango 主题预览](screenshot.png)
 
@@ -8,7 +8,6 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 
 - Typecho 1.2 或更高版本。
 - PHP 8.0 或更高版本。
-- PHP DOM 扩展，建议启用；未启用时文章目录会使用兼容解析方式。
 - 在线更新需要 PHP ZipArchive，并且 cURL 或 `allow_url_fopen` 至少有一项可用。
 - 数据库账号需要 `ALTER TABLE` 权限。主题首次统计浏览量和点赞数时，会在 `contents` 表中自动创建 `views`、`likes` 字段。
 - `usr/cache/` 目录需要可写，站内图片缩略图缓存保存在 `usr/cache/timthumb/`。
@@ -46,7 +45,6 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 | Gravatar 镜像 | `https://cravatar.cn/avatar/` | 自定义头像镜像前缀时必须保留末尾 `/`。 |
 | 显示模式 | 自动切换 | 可选“自动切换”“始终浅色”“始终深色”。自动模式按本地时间在 06:00 至 18:00 使用浅色，其余时间使用深色。 |
 | 文章列表加载模式 | 页码模式 | 可切换为“加载更多”；加载更多使用主题内置 JSON 请求。 |
-| 选择字体 | 默认字体 | 可切换为主题内置的霞鹜文楷。 |
 
 ### 推荐位设置
 
@@ -74,7 +72,6 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 - 最近回复
 - 热门文章，按评论数排序
 - 热门标签，按文章数量排序
-- 文章目录，仅在文章正文页显示
 - 其它，包括登录入口和 RSS 链接
 
 数量设置：
@@ -84,8 +81,6 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 | 最新文章数量 | `3` | 控制最新文章模块的条目数。 |
 | 热门文章数量 | `5` | 控制热门文章模块的条目数。 |
 | 热门标签数量 | `20` | 控制热门标签模块的条目数。 |
-
-文章目录会读取正文中的 `h1` 至 `h6` 标题，自动补充唯一 `id` 并生成锚点。若文章没有标题元素，目录模块不会显示内容。
 
 ### 评论设置
 
@@ -148,7 +143,7 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 4. 将页面缩略名设为 `links`。
 5. 发布页面。
 
-主题通过 `page-links.php` 直接读取 `links` 数据表，并按分类字段分组展示链接；只要数据表存在，即使插件暂时停用也可以正常显示。头像优先级为：链接图片、邮箱 Gravatar、主题内置占位图。未检测到数据表时，页面会提示安装并启用 Links 插件完成初始化。
+主题通过 `page-links.php` 直接读取 `links` 数据表，并按分类字段分组展示链接；只要数据表存在，即使插件暂时停用也可以正常显示。所有友情链接均在新窗口打开。头像优先级为：链接图片、邮箱 Gravatar、主题内置占位图。未检测到数据表时，页面会提示安装并启用 Links 插件完成初始化。
 
 如果页面正文中保留了旧的 `<links ...>` 插件标签，主题会忽略该标签的输出，统一使用数据表生成链接卡片。
 
@@ -206,7 +201,7 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 
 ## 在线更新
 
-进入主题设置页时，主题会请求 GitHub Releases 检查最新正式版。检查结果缓存在 `usr/cache/mango-theme-release.json`，默认缓存 12 小时。无法访问 GitHub 时不会影响前台页面，主题会优先使用已有缓存。
+进入主题设置页时，主题会请求 GitHub Releases 检查最新正式版。检查结果缓存在 `usr/cache/mango-theme-release.json`，默认缓存 12 小时。当前版本已经是最新版本时不显示“主题更新”区域；无法访问 GitHub 时不会影响前台页面，主题会优先使用已有缓存。
 
 发现新版本后，“主题更新”区域会显示“在线更新”按钮。更新流程如下：
 
@@ -246,6 +241,13 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 ### 在线更新不可用或失败
 
 确认 PHP 已启用 ZipArchive，服务器可以通过 HTTPS 访问 `github.com` 和 `api.github.com`，并且主题目录及其上级目录可写。Git 工作区请使用 `git pull`。无法满足这些条件时，从 Releases 下载压缩包并按“从旧版本升级”步骤手动覆盖。
+
+## 1.7.1 更新说明
+
+- 当前版本已是最新版本时，不再显示“主题更新”区域。
+- 友情链接页面中的链接统一改为在新窗口打开。
+- 移除文章目录设置、标题解析和侧边栏目录代码。
+- 移除霞鹜文楷字体文件、加载样式和字体设置。
 
 ## 1.7.0 更新说明
 

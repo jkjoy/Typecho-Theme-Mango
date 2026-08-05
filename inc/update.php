@@ -287,6 +287,10 @@ function themeAutoUpgradeNotice()
 
     $release = mango_fetch_latest_release(false);
     $update = $release ? mango_get_latest_theme_update(false) : null;
+    if ($release && (!$update || !$update['has_update'])) {
+        return;
+    }
+
     $currentSafe = htmlspecialchars((string)$currentVersion, ENT_QUOTES, 'UTF-8');
     $checkUrl = mango_theme_update_admin_url('check');
     $releaseUrl = $release
@@ -302,16 +306,9 @@ function themeAutoUpgradeNotice()
         if ($errorSafe !== '') {
             echo '<br><small>' . $errorSafe . '</small>';
         }
-    } elseif ($update && $update['has_update']) {
+    } else {
         $latestSafe = htmlspecialchars((string)$update['latest_version'], ENT_QUOTES, 'UTF-8');
         echo '发现新版本 <strong>' . $latestSafe . '</strong>，当前版本为 ' . $currentSafe . '。';
-    } else {
-        $latestSafe = htmlspecialchars((string)$release['version'], ENT_QUOTES, 'UTF-8');
-        if (version_compare(mango_normalize_version($currentVersion), mango_normalize_version($release['version']), '>')) {
-            echo '当前版本 ' . $currentSafe . ' 高于 GitHub 最新正式版 ' . $latestSafe . '。';
-        } else {
-            echo '当前版本 ' . $currentSafe . '，已是最新正式版。';
-        }
     }
 
     echo ' <a href="' . htmlspecialchars($releaseUrl, ENT_QUOTES, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">查看发布记录</a>';

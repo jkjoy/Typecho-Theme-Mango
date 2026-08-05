@@ -127,13 +127,6 @@
 })();
 </script>
 <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/style.css'); ?>?v=<?php echo time(); ?>">
-<?php if (isset($this->options->lxgw) && $this->options->lxgw == '1'): ?>
-<style>
-    body, button, input, select, textarea {
-        font-family: 'LXGW', sans-serif !important;
-    }
-</style>
-<?php endif; ?>
 <?php $this->header(); ?>
 </head>
 <body class="home blog">

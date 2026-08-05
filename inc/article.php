@@ -148,13 +148,6 @@ class CustomContentFilter
         // 执行替换
         $content = preg_replace($pattern, $replacement, $content);
 
-        if (function_exists('mango_build_toc_and_inject_ids')) {
-            $result = mango_build_toc_and_inject_ids($content, $widget);
-            if (is_array($result) && isset($result['content'])) {
-                $content = $result['content'];
-            }
-        }
-
         return $content;
     }
 }

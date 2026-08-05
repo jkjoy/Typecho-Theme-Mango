@@ -101,7 +101,7 @@ $this->need('header.php'); ?>
                                         <span class="mango-link-main">
                                             <a class="mango-link-name-link"
                                                href="<?php echo htmlspecialchars($url); ?>"
-                                               target="_self"
+                                               target="_blank"
                                                rel="noopener"
                                                <?php echo $url === '#' ? 'aria-disabled="true"' : ''; ?>
                                             >
