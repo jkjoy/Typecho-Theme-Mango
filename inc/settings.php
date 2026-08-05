@@ -48,17 +48,9 @@ function themeConfig($form)
     $form->addInput($darkMode);
     $loadmore = new Typecho_Widget_Helper_Form_Element_Radio('loadmore', ['0' => _t('页码模式'), '1' => _t('加载更多')], '0', _t('文章列表加载模式'), _t(' '));
     $form->addInput($loadmore);
-    $slidePosts = new Typecho_Widget_Helper_Form_Element_Text(
-        'slidePosts',
-        NULL,
-        NULL,
-        _t('<span class="themeConfig"><h3>推荐位设置</h3></span><div class="info">幻灯片展示</div>推荐位文章 CID'),
-        _t('输入文章的 CID，多个请用英文逗号或空格分隔，如：1,2,3 或 1 2 3')
-    );
-    $form->addInput($slidePosts);   
     $icpbeian = new Typecho_Widget_Helper_Form_Element_Text('icpbeian', NULL, NULL, _t('<span class="themeConfig"><h3>底部设置</h3></span><div class="info">网站底部信息设置</div>备案号码'), _t('不填写则不显示'));
     $form->addInput($icpbeian);
-    $showlinks = new Typecho_Widget_Helper_Form_Element_Radio('showlinks', ['0' => _t('不显示'), '1' => _t('显示')], '0', _t('首页底部链接'), _t('是否展示友情链接,需要启用links插件'));
+    $showlinks = new Typecho_Widget_Helper_Form_Element_Radio('showlinks', ['0' => _t('不显示'), '1' => _t('显示')], '0', _t('首页底部链接'), _t('展示 links 数据表中分类为“推荐”的已启用链接'));
     $form->addInput($showlinks);
     $tongji = new Typecho_Widget_Helper_Form_Element_Textarea('tongji', NULL, NULL, _t('自定义页脚内容'), _t('支持HTML语法，可用于添加第三方统计代码'));
     $form->addInput($tongji);

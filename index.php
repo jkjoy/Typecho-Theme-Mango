@@ -5,7 +5,7 @@
  * 原作者 huitheme
  * @package  Mango 
  * @author 老孙博客
- * @version 1.7.1
+ * @version 1.7.2
  * @link http://www.imsun.org
  */
 

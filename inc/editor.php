@@ -6,6 +6,18 @@ function themeFields($layout) {
     $summary= new Typecho_Widget_Helper_Form_Element_Textarea('summary', NULL, NULL, _t('文章摘要'), _t('自定义摘要'));
     $layout->addItem($summary);
 }
+
+function themePostFields($layout)
+{
+    $featured = new \Typecho\Widget\Helper\Form\Element\Checkbox(
+        'featured',
+        ['1' => _t('显示在首页推荐位')],
+        NULL,
+        _t('推荐位'),
+        _t('默认不显示；勾选后，该文章会显示在首页推荐位。')
+    );
+    $layout->addItem($featured);
+}
 /**
  * Typecho后台附件增强：图片预览、批量插入、保留官方删除按钮与逻辑
  * @author jkjoy

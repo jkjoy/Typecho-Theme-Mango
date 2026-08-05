@@ -27,7 +27,7 @@ if (!empty($slides)):
                              class="post-images"
                              loading="<?php echo $index === 0 ? 'eager' : 'lazy'; ?>" />
                         <h2><?php echo $post['title']; ?></h2>
-                        <i>置顶精彩</i>
+                        <i>推荐</i>
                     </a>
                 </div>
                 <?php endforeach; ?>

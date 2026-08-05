@@ -2,14 +2,47 @@
     </div>
 </div>
 </section>
-<?php if ($this->options->showlinks): ?>
+<?php
+$footerLinks = [];
+if ($this->options->showlinks) {
+    try {
+        $db = Typecho_Db::get();
+        $links = $db->fetchAll(
+            $db->select('name', 'url', 'description')
+                ->from('table.links')
+                ->where('state = ?', 1)
+                ->where('sort = ?', '推荐')
+                ->order('order', Typecho_Db::SORT_ASC)
+        );
+
+        foreach ($links as $link) {
+            if (trim((string)($link['name'] ?? '')) !== '' && trim((string)($link['url'] ?? '')) !== '') {
+                $footerLinks[] = $link;
+            }
+        }
+    } catch (Exception $error) {
+        error_log('Mango footer links table query failed: ' . $error->getMessage());
+    }
+}
+?>
+<?php if (!empty($footerLinks)): ?>
 <section class="links mobile_none">
     <div class="container">
         <span>友情链接：</span>
-        <?php Links_Plugin::output('<a href="{url}" target="_blank" rel="me noopener" title="{title}">{name}</a>'); ?>        
+        <?php foreach ($footerLinks as $link):
+            $name = trim((string)$link['name']);
+            $url = trim((string)$link['url']);
+            $description = trim((string)($link['description'] ?? ''));
+            ?>
+            <a href="<?php echo htmlspecialchars($url, ENT_QUOTES, 'UTF-8'); ?>"
+               target="_blank"
+               rel="me noopener noreferrer"
+               title="<?php echo htmlspecialchars($description !== '' ? $description : $name, ENT_QUOTES, 'UTF-8'); ?>"
+            ><?php echo htmlspecialchars($name, ENT_QUOTES, 'UTF-8'); ?></a>
+        <?php endforeach; ?>
     </div>
 </section>
-<?php endif; ?>  
+<?php endif; ?>
 <footer class="footbox">
     <div class="container">
     	<div class="copyright">&copy; <?php echo date('Y'); ?> 

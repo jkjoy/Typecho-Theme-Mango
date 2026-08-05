@@ -232,38 +232,22 @@ function mango_timthumb_encode_src($srcPath)
  * 获取幻灯片文章
  */
 function getSlidesPosts() {
-    $slides = Helper::options()->slidePosts;
-    if (empty($slides)) {
-        return array();
-    }
-    $cids = preg_split('/[,\s]+/', $slides);
-    $cids = array_map('intval', $cids);
-    $cids = array_filter($cids);
-    if (empty($cids)) {
-        return array();
-    }
-    // 查询文章
     try {
         $db = Typecho_Db::get();
-        // 构建查询
-        $posts = $db->fetchAll($db->select()
+        $featuredValue = json_encode(['1']);
+        $posts = $db->fetchAll($db->select('table.contents.*')
             ->from('table.contents')
-            ->where('cid IN ?', $cids)
-            ->where('status = ?', 'publish')
-            ->where('type = ?', 'post'));
-        $postsMap = array();
-        foreach ($posts as $post) {
-            $postsMap[$post['cid']] = $post;
-        }
-        $sortedPosts = array();
-        foreach ($cids as $cid) {
-            if (isset($postsMap[$cid])) {
-                $sortedPosts[] = $postsMap[$cid];
-            }
-        }
+            ->join('table.fields', 'table.fields.cid = table.contents.cid')
+            ->where('table.contents.status = ?', 'publish')
+            ->where('table.contents.type = ?', 'post')
+            ->where('table.fields.name = ?', 'featured')
+            ->where('table.fields.type = ?', 'json')
+            ->where('table.fields.str_value = ?', $featuredValue)
+            ->order('table.contents.created', Typecho_Db::SORT_DESC));
+
         return array_map(function($post) {
             return Typecho_Widget::widget('Widget_Abstract_Contents')->push($post);
-        }, $sortedPosts);    
+        }, $posts);
     } catch (Exception $e) {
         error_log('Error in getSlidesPosts: ' . $e->getMessage());
         return array();
