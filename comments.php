@@ -109,7 +109,18 @@ function getPermalinkFromCoid($coid) {
                         <?php $comments->cancelReply(); ?>
                     </small>
                 </h3>
-                    <form method="post" action="<?php $this->commentUrl() ?>" id="comment-form" class="comment-form">
+                    <?php
+                    $commentAction = $this->commentUrl;
+                    if (strpos($commentAction, 'checkReferer=') === false) {
+                        $commentAction .= (strpos($commentAction, '?') === false ? '?' : '&') . 'checkReferer=false';
+                    }
+                    $requestUrl = $this->request->getRequestUrl();
+                    if (strpos($requestUrl, 'http://') !== 0 && strpos($requestUrl, 'https://') !== 0) {
+                        $requestUrl = $this->permalink;
+                    }
+                    $commentToken = Typecho_Widget::widget('Widget_Security')->getToken($requestUrl);
+                    ?>
+                    <form method="post" action="<?php echo htmlspecialchars($commentAction, ENT_QUOTES, 'UTF-8'); ?>" id="comment-form" class="comment-form">
                         <?php if($this->user->hasLogin()): ?>
                         <p>
                             登录身份: <a href="<?php $this->options->profileUrl(); ?>"><?php $this->user->screenName(); ?></a>.
@@ -129,6 +140,7 @@ function getPermalinkFromCoid($coid) {
                         <p class="comment-form-comment">
                             <textarea rows="8" cols="50" name="text" id="textarea" class="textarea"  onkeydown="if(event.ctrlKey&&event.keyCode==13){document.getElementById('misubmit').click();return false};"  placeholder="雁过留声,人过留名"  required><?php $this->remember('text'); ?></textarea>
                         </p>
+                        <input type="hidden" name="_" value="<?php echo htmlspecialchars($commentToken, ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="parent" value="">
                         <p class="form-submit">
                             <button type="submit" class="submit" id="misubmit">提交评论</button>

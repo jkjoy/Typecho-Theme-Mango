@@ -23,11 +23,6 @@
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/bootstrap-icons.css'); ?>">
     <link rel="stylesheet" href="<?php $this->options->themeUrl('assets/css/fancybox.css'); ?>">
     <script type="text/javascript" src="<?php $this->options->themeUrl('assets/js/jquery.min.js'); ?>" id="jquery-min-js"></script>
-    <!-- 通过自有函数输出HTML头部信息 -->
-    <script>
-      window.MangoConfig = window.MangoConfig || {};
-      window.MangoConfig.siteUrl = <?php echo json_encode(Helper::options()->siteUrl, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
-    </script>
     <script>
 (function() {
   // 检查当前是否在日间时段（6:00-18:00）
@@ -139,6 +134,7 @@
     }
 </style>
 <?php endif; ?>
+<?php $this->header(); ?>
 </head>
 <body class="home blog">
 <header class="header sticky-top">
