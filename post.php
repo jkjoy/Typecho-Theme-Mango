@@ -26,7 +26,11 @@
 			<?php echo CustomContentFilter::parseImage($this->content, $this); ?>
 		</article>
             <?php if ($this->modified > $this->created): ?>
-        <p>最后更新于 <?php echo date('Y-m-d H:i:s', $this->modified); ?></p>
+        <div class="post-last-updated" role="note">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <span>最后更新于</span>
+            <time datetime="<?php echo date('c', $this->modified); ?>"><?php echo date('Y-m-d H:i:s', $this->modified); ?></time>
+        </div>
             <?php endif; ?>			
 		<div class="post_loop_tag">
             <?php if ($this->tags):foreach ($this->tags as $tag): ?>

@@ -195,7 +195,7 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 
 ## 在线更新
 
-进入主题设置页时，主题会请求 GitHub Releases 检查最新正式版。检查结果缓存在 `usr/cache/mango-theme-release.json`，默认缓存 12 小时。当前版本已经是最新版本时不显示“主题更新”区域；无法访问 GitHub 时不会影响前台页面，主题会优先使用已有缓存。
+每次进入主题设置页时，主题都会清除 `usr/cache/mango-theme-release.json` 并重新请求 GitHub Releases 检查最新正式版。当前版本已经是最新版本时不显示“主题更新”区域；无法访问 GitHub 时不会影响前台页面。
 
 发现新版本后，“主题更新”区域会显示“在线更新”按钮。更新流程如下：
 
@@ -235,6 +235,15 @@ Mango 是从 WordPress 主题 [Mango](https://github.com/HUiTHEME/Mango) 移植�
 ### 在线更新不可用或失败
 
 确认 PHP 已启用 ZipArchive，服务器可以通过 HTTPS 访问 `github.com` 和 `api.github.com`，并且主题目录及其上级目录可写。Git 工作区请使用 `git pull`。无法满足这些条件时，从 Releases 下载压缩包并按“从旧版本升级”步骤手动覆盖。
+
+## 1.7.3 更新说明
+
+- 增加简约版友情链接与文章归档独立页面模板，保留原有页面模板。
+- 简约版归档增加文章总字数、归档年份和建站天数统计。
+- 修复页码模式的页码样式，并适配移动端和深色模式。
+- 修复移动端菜单项过多时无法继续向下滚动的问题。
+- 优化文章详情页“最后更新于”的展示样式和时间语义。
+- 每次进入主题设置页时清空版本检测缓存并重新检查更新。
 
 ## 1.7.2 更新说明
 

@@ -285,7 +285,8 @@ function themeAutoUpgradeNotice()
         return;
     }
 
-    $release = mango_fetch_latest_release(false);
+    @unlink(mango_theme_update_cache_file());
+    $release = mango_fetch_latest_release(true);
     $update = $release ? mango_get_latest_theme_update(false) : null;
     if ($release && (!$update || !$update['has_update'])) {
         return;
